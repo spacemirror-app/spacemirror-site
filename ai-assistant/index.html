@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>空间镜 · AI 空间助手</title>
+  <style>
+    :root{
+      --bg:#f4f6fb; --card:#ffffff; --text:#0f172a; --muted:#64748b;
+      --accent:#3b82f6; --teal:#22d3ee; --orange:#f59e0b; --green:#10b981;
+      --purple:#8b5cf6; --red:#ef4444; --border:#e6eaf2; --radius:16px;
+      --shadow:0 6px 24px rgba(15,23,42,.06);
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{
+      font-family:system-ui,-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+      background:#e9edf5;color:var(--text);line-height:1.5;
+    }
+    .wrap{max-width:480px;margin:0 auto;background:var(--bg);min-height:100vh;position:relative}
+    a{color:inherit;text-decoration:none}
+
+    .topbar{
+      position:sticky;top:0;z-index:30;background:rgba(244,246,251,.92);
+      backdrop-filter:blur(12px);border-bottom:1px solid var(--border);
+      padding:12px 16px;display:flex;align-items:center;gap:10px;
+    }
+    .topbar .back{font-size:1.4rem;color:var(--muted);width:28px}
+    .topbar h1{font-size:1.05rem;font-weight:800}
+    .topbar .sub{font-size:.72rem;color:var(--muted)}
+    .topbar .ai-badge{
+      margin-left:auto;font-size:.68rem;font-weight:700;color:#fff;
+      background:linear-gradient(135deg,var(--accent),var(--purple));
+      padding:3px 10px;border-radius:999px;
+    }
+
+    /* 开场卡片 */
+    .hero{
+      margin:14px 16px 6px;padding:16px;
+      background:linear-gradient(135deg,#3b82f6,#22d3ee);border-radius:20px;color:#fff;
+      box-shadow:0 12px 30px rgba(59,130,246,.25);
+    }
+    .hero .h-tag{font-size:.72rem;opacity:.9}
+    .hero .h-title{font-size:1.2rem;font-weight:800;margin-top:4px}
+    .hero .h-meta{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+    .hero .h-meta span{font-size:.7rem;background:rgba(255,255,255,.18);padding:3px 9px;border-radius:999px}
+
+    /* 消息区 */
+    .chat{display:flex;flex-direction:column;gap:12px;padding:14px 16px 150px}
+    .msg{display:flex;gap:8px;max-width:100%}
+    .msg.user{justify-content:flex-end}
+    .msg .avatar{
+      width:30px;height:30px;border-radius:50%;flex-shrink:0;
+      display:flex;align-items:center;justify-content:center;font-size:.85rem;
+      background:linear-gradient(135deg,#3b82f6,#8b5cf6);color:#fff;font-weight:700;
+    }
+    .msg.user .avatar{background:linear-gradient(135deg,#0ea5e9,#22d3ee)}
+    .bubble{
+      padding:11px 14px;border-radius:16px;font-size:.88rem;
+      max-width:78%;word-break:break-word;
+    }
+    .msg.ai .bubble{background:var(--card);border:1px solid var(--border);border-top-left-radius:4px;box-shadow:var(--shadow)}
+    .msg.user .bubble{background:linear-gradient(135deg,#3b82f6,#2563eb);color:#fff;border-top-right-radius:4px}
+
+    /* AI 回复内的方案卡 */
+    .plan-card{
+      margin-top:10px;padding:11px 12px;background:#f8fafc;
+      border:1px solid var(--border);border-radius:12px;font-size:.8rem;
+    }
+    .plan-card:first-child{margin-top:0}
+    .plan-card .pc-head{display:flex;align-items:center;gap:6px;font-weight:700}
+    .plan-card .pc-prio{font-size:.65rem;padding:1px 7px;border-radius:999px;font-weight:600}
+    .plan-card .pc-prio.high{background:#fee2e2;color:#dc2626}
+    .plan-card .pc-prio.medium{background:#fef3c7;color:#d97706}
+    .plan-card .pc-prio.low{background:#e0f2fe;color:#0284c7}
+    .plan-card .pc-row{color:var(--muted);margin-top:4px}
+    .plan-card .pc-row b{color:var(--text)}
+    .plan-card .pc-link{display:inline-flex;align-items:center;gap:4px;margin-top:8px;color:var(--accent);font-weight:700;font-size:.8rem}
+    .bubble .dim-row{display:flex;align-items:center;gap:8px;margin-top:6px;font-size:.8rem}
+    .bubble .dim-bar{flex:1;height:7px;background:#eef1f7;border-radius:999px;overflow:hidden}
+    .bubble .dim-bar span{display:block;height:100%;border-radius:999px}
+
+    /* 快捷问题 */
+    .chips{display:flex;gap:8px;padding:0 16px 4px;overflow-x:auto;scrollbar-width:none;position:relative;z-index:20}
+    .chips::-webkit-scrollbar{display:none}
+    .chip{
+      flex-shrink:0;font-size:.78rem;padding:7px 13px;border-radius:999px;
+      background:var(--card);border:1px solid var(--border);color:var(--text);cursor:pointer;
+      box-shadow:var(--shadow);
+    }
+    .chip:active{transform:scale(.96)}
+
+    /* 打字指示 */
+    .typing{display:inline-flex;gap:4px;align-items:center;padding:4px 2px}
+    .typing i{width:6px;height:6px;border-radius:50%;background:var(--muted);animation:blink 1s infinite}
+    .typing i:nth-child(2){animation-delay:.2s}
+    .typing i:nth-child(3){animation-delay:.4s}
+    @keyframes blink{0%,80%,100%{opacity:.25}40%{opacity:1}}
+
+    /* 输入栏 */
+    .input-bar{
+      position:fixed;bottom:0;left:50%;transform:translateX(-50%);
+      width:100%;max-width:480px;z-index:40;
+      background:rgba(255,255,255,.94);backdrop-filter:blur(12px);
+      border-top:1px solid var(--border);padding:10px 14px calc(10px + env(safe-area-inset-bottom));
+      display:flex;gap:10px;align-items:flex-end;
+    }
+    .input-bar .in{
+      flex:1;border:1px solid var(--border);border-radius:22px;
+      padding:10px 16px;font-size:.9rem;background:#f8fafc;outline:none;color:var(--text);
+      transition:border-color .2s;
+    }
+    .input-bar .in:focus{border-color:var(--accent);background:#fff}
+    .input-bar .send{
+      width:42px;height:42px;border:none;border-radius:50%;cursor:pointer;flex-shrink:0;
+      background:linear-gradient(135deg,#3b82f6,#2563eb);color:#fff;
+      display:flex;align-items:center;justify-content:center;
+      box-shadow:0 6px 16px rgba(59,130,246,.35);
+    }
+    .input-bar .send:active{transform:scale(.94)}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="topbar">
+      <a class="back" href="../prototype/index.html">‹</a>
+      <div>
+        <h1>AI 空间助手</h1>
+        <div class="sub">问诊你的孪生家 · 基于真实诊断数据</div>
+      </div>
+      <div class="ai-badge">AI</div>
+    </div>
+
+    <div class="hero">
+      <div class="h-tag">空间镜 · 智能诊断引擎</div>
+      <div class="h-title" id="hero-title">你好，我是你的空间顾问</div>
+      <div class="h-meta" id="hero-meta"></div>
+    </div>
+
+    <div class="chips" id="chips">
+      <div class="chip" data-q="我家哪里最需要改造？">哪里最需要改造</div>
+      <div class="chip" data-q="厨房动线怎么优化？">厨房动线</div>
+      <div class="chip" data-q="采光不好怎么办？">采光不好</div>
+      <div class="chip" data-q="全部改造预算多少？">预算多少</div>
+    </div>
+
+    <div class="chat" id="chat"></div>
+
+    <div class="input-bar">
+      <input class="in" id="q" placeholder="问问你的家，比如：主卧太吵怎么办" autocomplete="off">
+      <button class="send" id="send" aria-label="发送">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M3 11.5 21 3l-6 18-3.5-7L3 11.5Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M21 3 11.5 14" stroke="currentColor" stroke-width="2"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <script src="../assets/app-data.js"></script>
+  <script>
+    (function () {
+      var D = window.SPACE_MIRROR ? window.SPACE_MIRROR.DIAGNOSIS : null;
+      var ACC = window.SPACE_MIRROR ? window.SPACE_MIRROR.loadAccount() : null;
+      var chat = document.getElementById('chat');
+      var PRIO = { high: '高优先级', medium: '中优先级', low: '低优先级' };
+      var PRIO_CLS = { high: 'high', medium: 'medium', low: 'low' };
+      var DIM_COLOR = { '动线': '#60a5fa', '采光': '#f59e0b', '收纳': '#22d3ee', '噪音': '#34d399' };
+
+      function esc(s) {
+        return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      }
+
+      /* —— 开场 —— */
+      function boot() {
+        var name = ACC && ACC.name ? ACC.name : '空间镜用户';
+        var plan = ACC && ACC.plan ? ACC.plan : '免费版';
+        document.getElementById('hero-title').textContent = '你好 ' + name + '，我是你的空间顾问';
+        var meta = document.getElementById('hero-meta');
+        if (D) {
+          meta.innerHTML = '<span>' + esc(D.home) + '</span><span>综合空间分 ' + D.totalScore + '</span><span>' + esc(plan) + '</span>';
+        } else {
+          meta.innerHTML = '<span>' + esc(plan) + '</span>';
+        }
+        addAI('我是空间镜 AI 助手。已经通读你家 89㎡ 的诊断结果：' + (D ? '综合空间分 <b>' + D.totalScore + '</b>，四维中 <b>收纳（45分）</b>最弱、<b>动线（72分）</b>最好。' : '') + '你可以直接问我，比如「哪里最需要改造」「厨房怎么优化」，或点上方快捷问题。');
+      }
+
+      /* —— 消息渲染 —— */
+      function addAI(html, delay) {
+        var m = document.createElement('div');
+        m.className = 'msg ai';
+        m.innerHTML = '<div class="avatar">镜</div><div class="bubble"><div class="typing"><i></i><i></i><i></i></div></div>';
+        chat.appendChild(m);
+        scrollBottom();
+        setTimeout(function () {
+          m.querySelector('.bubble').innerHTML = html;
+          scrollBottom();
+        }, delay || 700);
+      }
+      function addUser(text) {
+        var m = document.createElement('div');
+        m.className = 'msg user';
+        var b = document.createElement('div');
+        b.className = 'bubble';
+        b.textContent = text;   // 用户输入用 textContent，防注入
+        m.appendChild(b);
+        chat.appendChild(m);
+        scrollBottom();
+      }
+      function scrollBottom() { chat.scrollTop = chat.scrollHeight; }
+
+      /* —— 回复模板 —— */
+      function planCard(p) {
+        return '<div class="plan-card">' +
+          '<div class="pc-head">' + (p.products[0].icon || '📋') + ' ' + esc(p.group) +
+          ' <span class="pc-prio ' + PRIO_CLS[p.priority] + '">' + PRIO[p.priority] + '</span></div>' +
+          '<div class="pc-row">问题：' + esc(p.problem) + '</div>' +
+          '<div class="pc-row">动作：' + esc(p.action) + '</div>' +
+          '<div class="pc-row">效果：' + esc(p.effect) + '</div>' +
+          '<div class="pc-row">预算：<b>¥' + p.budgetMin.toLocaleString() + ' – ' + p.budgetMax.toLocaleString() + '</b> · ' + esc(p.duration) + '</div>' +
+          '<a class="pc-link" href="../plan/index.html">查看方案详情 →</a>' +
+          '</div>';
+      }
+      function dimBar(label, score) {
+        var c = DIM_COLOR[label] || '#60a5fa';
+        return '<div class="dim-row"><span style="width:44px">' + esc(label) + '</span>' +
+          '<div class="dim-bar"><span style="width:' + score + '%;background:' + c + '"></span></div>' +
+          '<b style="width:28px;text-align:right">' + score + '</b></div>';
+      }
+      function byId(id) {
+        for (var i = 0; i < D.plans.length; i++) if (D.plans[i].id === id) return D.plans[i];
+        return null;
+      }
+
+      /* —— 意图路由 —— */
+      function reply(text) {
+        var t = text.toLowerCase();
+        var parts = [];
+
+        // 预算
+        if (/预算|多少钱|费用|花费|价格|要花/.test(t)) {
+          var min = 0, max = 0;
+          D.plans.forEach(function (p) { min += p.budgetMin; max += p.budgetMax; });
+          parts.push('<b>6 个改造方案合计约 ¥' + min.toLocaleString() + ' – ' + max.toLocaleString() + '</b>（不含选配）。分项如下：' +
+            D.plans.slice().sort(function(a,b){return a.priority===b.priority?0:a.priority==='high'?-1:1}).map(planCard).join(''));
+        }
+        // 动线
+        else if (/动线|厨房|做饭|中岛|冰箱/.test(t)) {
+          var kf = byId('kitchen-flow');
+          parts.push('厨房动线目前 <b>' + kf.beforeScore + ' 分</b>，主要问题是「' + kf.problem + '」。' + planCard(kf));
+        }
+        // 采光
+        else if (/采光|光线|太暗|太亮|亮一点|阳光/.test(t)) {
+          var bl = byId('balcony-light'), kl = byId('kitchen-light');
+          parts.push('客厅与厨房采光都是 <b>58 分</b>，是全屋除收纳外最弱的维度。两个方案一起做效果最好：' + planCard(bl) + planCard(kl));
+        }
+        // 收纳
+        else if (/收纳|衣柜|乱|储物|杂物|柜子|整理/.test(t)) {
+          var bs = byId('bedroom-storage'), ls = byId('living-storage');
+          parts.push('收纳是全屋最弱项（<b>45 分</b>），建议优先处理：' + planCard(bs) + planCard(ls));
+        }
+        // 噪音
+        else if (/噪音|吵|隔音|睡眠|安静|声音/.test(t)) {
+          var bn = byId('bedroom-noise');
+          parts.push('主卧噪音 <b>' + bn.beforeScore + ' 分</b>，临街低频噪声会影响深睡。' + planCard(bn));
+        }
+        // 优先级 / 先做
+        else if (/先做|顺序|优先级|哪个|第一步|从哪/.test(t)) {
+          var order = ['high','medium','low'], lines = [];
+          lines.push('建议按「影响睡眠与日用的高频痛点」排序，参考优先级：');
+          order.forEach(function (lv) {
+            D.plans.filter(function (p) { return p.priority === lv; }).forEach(function (p) {
+              lines.push('· <b>' + esc(p.group) + '</b>（' + esc(p.room) + '，' + p.beforeScore + '→' + p.afterScore + ' 分，¥' + p.budgetMin.toLocaleString() + ' 起）');
+            });
+          });
+          parts.push(lines.join('<br>') + '<br><br>第一步建议做<b>「' + byId('balcony-light').group + '」或「' + byId('bedroom-storage').group + '」</b>——采光影响全屋体感，收纳影响日常效率。');
+        }
+        // 哪里最需要改造 / 最弱
+        else if (/哪里|最差|最弱|最需要|怎么改|改造哪|全面/.test(t)) {
+          var weakest = D.radar.slice().sort(function(a,b){return a.score-b.score})[0];
+          var bs = byId('bedroom-storage'), ls = byId('living-storage');
+          parts.push('你的四维诊断：' + D.radar.map(function (r) { return dimBar(r.label, r.score); }).join('') +
+            '<br><br>综合分 <b>' + D.totalScore + '</b>。最弱的是<b>「' + weakest.label + '」(' + weakest.score + ' 分)</b>，直接拖低整体评分，建议优先处理：' + planCard(bs) + planCard(ls));
+        }
+        // 你好 / 帮助 / 能力
+        else if (/你好|嗨|hello|hi|在吗|帮助|能做什么|你是谁|谢谢/.test(t)) {
+          parts.push('我是空间镜 AI 助手，基于你家「89㎡ · 3室2厅」的扫描诊断结果为你服务。可以问我：<br>' +
+            '· 哪里最需要改造（优先级排序）<br>' +
+            '· 厨房/卧室/客厅的具体问题与改造方案<br>' +
+            '· 全部改造的预算估算<br>也可以点上面的快捷问题试试。');
+        }
+        // 默认
+        else {
+          parts.push('这个问题我暂时还答不上来（演示版规则引擎）。你可以试试：<br>' +
+            '· 我家哪里最需要改造？<br>· 厨房动线怎么优化？<br>· 采光不好怎么办？<br>· 全部改造预算多少？');
+        }
+        addAI(parts.join(''));
+      }
+
+      function ask(text) {
+        text = (text || '').trim();
+        if (!text) return;
+        addUser(text);
+        document.getElementById('q').value = '';
+        setTimeout(function () { reply(text); }, 1000);
+      }
+
+      /* —— 事件 —— */
+      document.getElementById('send').addEventListener('click', function () { ask(document.getElementById('q').value); });
+      document.getElementById('q').addEventListener('keydown', function (e) { if (e.key === 'Enter') ask(this.value); });
+      document.querySelectorAll('.chip').forEach(function (c) {
+        c.addEventListener('click', function () { ask(c.getAttribute('data-q')); });
+      });
+
+      boot();
+    })();
+  </script>
+</body>
+</html>
