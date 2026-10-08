@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>空间镜 · 小程序版</title>
+  <style>
+    :root{
+      --bg:#f4f6fb; --card:#ffffff; --text:#0f172a; --muted:#64748b;
+      --accent:#3b82f6; --teal:#22d3ee; --orange:#f59e0b; --green:#10b981;
+      --purple:#8b5cf6; --border:#e6eaf2; --radius:16px; --shadow:0 6px 24px rgba(15,23,42,.06);
+      --wx:#07c160;
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:system-ui,-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+      background:#e9edf4;color:var(--text);line-height:1.5;padding-bottom:70px}
+    a{color:inherit;text-decoration:none}
+    .wrap{max-width:480px;margin:0 auto;background:var(--bg);min-height:100vh;position:relative}
+
+    /* ── 微信小程序胶囊标题栏 ── */
+    .nav{
+      position:sticky;top:0;z-index:30;background:#ededed;border-bottom:1px solid #e2e2e2;
+      padding:8px 10px 10px;display:flex;align-items:center;gap:8px;
+    }
+    .nav .dot{width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--teal))}
+    .nav .t{font-size:.9rem;font-weight:700}
+    .nav .st{font-size:.62rem;color:#8a8a8a;margin-top:1px}
+    .capsule{
+      margin-left:auto;display:flex;align-items:center;gap:0;
+      border:1px solid #dcdcdc;border-radius:999px;background:rgba(255,255,255,.7);height:30px;overflow:hidden;
+    }
+    .capsule span{padding:0 12px;font-size:.86rem;color:#4b4b4b;line-height:30px;cursor:pointer}
+    .capsule span:first-child{border-right:1px solid #dcdcdc}
+
+    .container{padding:14px 14px 20px}
+
+    /* 诊断概览卡 */
+    .ov{background:linear-gradient(135deg,#3b82f6,#22d3ee);color:#fff;border-radius:18px;
+      padding:16px;box-shadow:0 12px 28px rgba(59,130,246,.25);margin-bottom:14px}
+    .ov .oh{display:flex;justify-content:space-between;align-items:baseline}
+    .ov .oh .hn{font-size:.92rem;font-weight:800}
+    .ov .oh .hs{font-size:.7rem;opacity:.9}
+    .ov b{font-size:2.4rem;font-weight:800;line-height:1.1;display:block;margin-top:4px}
+    .mini-bars{display:flex;gap:8px;margin-top:12px}
+    .mb{flex:1}
+    .mb .k{font-size:.62rem;opacity:.92;text-align:center}
+    .mb .track{height:5px;background:rgba(255,255,255,.28);border-radius:999px;margin-top:4px;overflow:hidden}
+    .mb .track i{display:block;height:100%;background:#fff;border-radius:999px}
+    .mb .v{font-size:.62rem;text-align:center;margin-top:3px;font-weight:700}
+
+    /* 快捷宫格 */
+    .grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}
+    .q{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:12px 4px;text-align:center;
+      box-shadow:var(--shadow);cursor:pointer;transition:.15s}
+    .q:active{transform:scale(.96)}
+    .q .ic{font-size:1.3rem}
+    .q .nm{font-size:.68rem;font-weight:700;margin-top:4px}
+    .card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+      padding:14px;margin-bottom:12px;box-shadow:var(--shadow)}
+    .sec-t{font-size:.8rem;font-weight:800;margin:2px 0 10px;display:flex;justify-content:space-between;align-items:center}
+    .sec-t span{font-size:.68rem;color:var(--muted);font-weight:600}
+
+    /* 方案卡 */
+    .plan{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+      padding:13px;margin-bottom:12px;box-shadow:var(--shadow)}
+    .plan .ph{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+    .plan .pt{font-size:.88rem;font-weight:800}
+    .plan .pm{font-size:.66rem;color:var(--muted);margin-top:3px}
+    .prio{font-size:.64rem;font-weight:700;padding:2px 8px;border-radius:999px;white-space:nowrap}
+    .prio.high{background:#fee2e2;color:#dc2626}
+    .prio.medium{background:#fef3c7;color:#d97706}
+    .prio.low{background:#dcfce7;color:#16a34a}
+    .f{display:flex;gap:8px;padding:5px 0;font-size:.76rem}
+    .f .fk{color:var(--muted);font-weight:700;min-width:52px;font-size:.68rem}
+    .f .fv{flex:1;color:#334155}
+    .f .fv .up{color:var(--green);font-weight:700}
+    .plan .pf{display:flex;justify-content:space-between;align-items:center;margin-top:10px;padding-top:9px;border-top:1px dashed var(--border)}
+    .plan .pb{font-size:.78rem;font-weight:800}
+    .btn{border:none;border-radius:10px;padding:8px 13px;font-weight:700;font-size:.76rem;cursor:pointer;transition:.15s}
+    .btn:active{transform:scale(.97)}
+    .btn.primary{background:var(--wx);color:#fff;box-shadow:0 5px 14px rgba(7,193,96,.28)}
+    .btn.ghost{background:#f1f5f9;color:#334155}
+    .btn.added{background:#ecfdf5;color:var(--green);cursor:default}
+    .btn.sm{padding:6px 10px;font-size:.7rem}
+
+    /* 清单 */
+    .grp{margin-bottom:12px}
+    .grp .gh{font-size:.72rem;font-weight:800;color:var(--muted);margin:0 0 7px 2px}
+    .item{display:flex;gap:10px;align-items:center;background:var(--card);border:1px solid var(--border);
+      border-radius:12px;padding:10px;margin-bottom:8px}
+    .item .ic{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.05rem;flex:0 0 38px}
+    .item .nm{font-size:.78rem;font-weight:700}
+    .item .sp{font-size:.66rem;color:var(--muted);margin-top:2px}
+    .item .mc{font-size:.64rem;color:var(--muted);margin-top:2px}
+    .item .rt{text-align:right;margin-left:auto}
+    .item .pr{font-size:.78rem;font-weight:800}
+    .step{display:flex;align-items:center;gap:6px;margin-top:5px;justify-content:flex-end}
+    .step button{width:22px;height:22px;border-radius:6px;border:1px solid var(--border);background:#f8fafc;
+      font-size:.8rem;line-height:1;cursor:pointer;color:#334155}
+    .step span{font-size:.74rem;font-weight:700;min-width:16px;text-align:center}
+    .req{font-size:.6rem;padding:1px 6px;border-radius:999px;background:#eef2ff;color:#4f46e5;font-weight:700}
+    .opt{font-size:.6rem;padding:1px 6px;border-radius:999px;background:#f1f5f9;color:#64748b;font-weight:700}
+    .sum{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:13px;box-shadow:var(--shadow)}
+    .sum .r{display:flex;justify-content:space-between;font-size:.78rem;padding:4px 0}
+    .sum .r.tot{border-top:1px dashed var(--border);margin-top:6px;padding-top:9px;font-size:.95rem;font-weight:800}
+    .sum .r.tot .v{color:var(--orange)}
+    .sum .r .k{color:var(--muted)}
+    .empty{text-align:center;padding:44px 10px;color:var(--muted);font-size:.8rem}
+
+    /* 表单 */
+    .field{margin-bottom:12px}
+    .field label{display:block;font-size:.7rem;font-weight:700;color:var(--muted);margin-bottom:5px}
+    .field input,.field textarea,.field select{
+      width:100%;font:inherit;font-size:.82rem;padding:10px 12px;border-radius:12px;
+      border:1px solid var(--border);background:#fff;color:var(--text);
+    }
+    .field textarea{min-height:80px;resize:vertical}
+    .field input:focus,.field textarea:focus{outline:none;border-color:var(--accent)}
+    .submit{width:100%;border:none;border-radius:12px;padding:13px;background:var(--wx);color:#fff;
+      font-weight:800;font-size:.88rem;cursor:pointer}
+    .submit:active{transform:scale(.98)}
+
+    /* 底部 Tab */
+    .tabbar{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;
+      background:rgba(255,255,255,.96);backdrop-filter:blur(10px);border-top:1px solid var(--border);
+      display:flex;z-index:40;padding:6px 0 calc(6px + env(safe-area-inset-bottom))}
+    .tab{flex:1;text-align:center;color:#9aa3b2;font-size:.64rem;cursor:pointer;position:relative;padding:3px 0}
+    .tab .ti{display:block;font-size:1.15rem;line-height:1.3}
+    .tab.active{color:var(--wx);font-weight:700}
+    .badge{position:absolute;top:-2px;left:58%;background:#ef4444;color:#fff;font-size:.58rem;font-weight:700;
+      min-width:16px;height:16px;border-radius:999px;display:none;align-items:center;justify-content:center;padding:0 4px}
+
+    .toast{position:fixed;left:50%;bottom:80px;transform:translate(-50%,20px);
+      background:rgba(15,23,42,.92);color:#fff;padding:11px 18px;border-radius:12px;font-size:.82rem;
+      opacity:0;transition:.25s;z-index:200;pointer-events:none}
+    .toast.show{opacity:1;transform:translate(-50%,0)}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <!-- 胶囊标题栏 -->
+    <div class="nav">
+      <div class="dot"></div>
+      <div>
+        <div class="t">空间镜</div>
+        <div class="st">空间镜 · 小程序版</div>
+      </div>
+      <div class="capsule">
+        <span id="cap-more">···</span>
+        <span id="cap-add">⊕</span>
+      </div>
+    </div>
+
+    <div class="container" id="pages">
+      <!-- 首页 -->
+      <div id="page-home">
+        <div class="ov">
+          <div class="oh"><div class="hn" id="ov-home">阳光花园 89㎡</div><div class="hs">诊断日期 2026-10-07</div></div>
+          <b>72<span style="font-size:.8rem;font-weight:600"> 分</span></b>
+          <div style="font-size:.7rem;opacity:.92">综合分 · 满分 100</div>
+          <div class="mini-bars" id="ov-bars"></div>
+        </div>
+
+        <div class="grid4">
+          <a class="q" href="../ai-assistant/index.html"><div class="ic">🤖</div><div class="nm">AI 问诊</div></a>
+          <a class="q" href="../prototype/index.html"><div class="ic">📷</div><div class="nm">扫描新房</div></a>
+          <a class="q" href="../mall/index.html"><div class="ic">🏬</div><div class="nm">逛门店</div></a>
+          <a class="q" href="../smarthome/index.html"><div class="ic">🏠</div><div class="nm">智能家居</div></a>
+        </div>
+
+        <div class="card">
+          <div class="sec-t">改造建议 <span>6 条 · 去「方案」查看</span></div>
+          <div style="font-size:.76rem;color:#475569;line-height:1.6">
+            最高优先级：<b>阳台采光改造</b>（采光 58 → 85）与<b>主卧收纳扩容</b>（收纳 45 → 80），
+            合计预算约 ¥9,000–14,000，工期约 3 天。
+          </div>
+          <div style="margin-top:10px"><button class="btn ghost sm" data-go="plan">查看全部方案 →</button></div>
+        </div>
+
+        <div class="card">
+          <div class="sec-t">空间资产 <span>手机采集 · 云端同步</span></div>
+          <div style="font-size:.76rem;color:#475569">已扫描 1 个空间，支持导出 glb/obj、跨设备访问与分享。</div>
+          <div style="margin-top:10px"><a class="btn ghost sm" href="homes.html">我的家资产 →</a></div>
+        </div>
+      </div>
+
+      <!-- 方案 -->
+      <div id="page-plan" style="display:none">
+        <div class="sec-t">改造方案 <span id="plan-count"></span></div>
+        <div id="plan-list"></div>
+      </div>
+
+      <!-- 清单 -->
+      <div id="page-cart" style="display:none">
+        <div class="sec-t">购物清单 <span id="cart-count"></span></div>
+        <div id="cart-body"></div>
+      </div>
+
+      <!-- 预约 -->
+      <div id="page-book" style="display:none">
+        <div class="sec-t">预约顾问 <span>24h 内联系</span></div>
+        <div class="card">
+          <div class="field"><label>姓名</label><input id="f-name" placeholder="请输入您的称呼"></div>
+          <div class="field"><label>电话</label><input id="f-phone" placeholder="请输入手机号" inputmode="tel"></div>
+          <div class="field"><label>期望时间</label>
+            <select id="f-time">
+              <option>工作日 上午</option><option>工作日 下午</option>
+              <option>周末 上午</option><option>周末 下午</option>
+            </select>
+          </div>
+          <div class="field"><label>改造需求</label><textarea id="f-need" placeholder="例如：客厅采光差、主卧收纳不足，预算 1 万元左右"></textarea></div>
+          <button class="submit" id="btn-book">提交预约</button>
+          <div style="font-size:.66rem;color:var(--muted);text-align:center;margin-top:10px">演示原型 · 不会真实提交</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 底部 Tab -->
+    <div class="tabbar">
+      <div class="tab active" data-tab="home"><span class="ti">🏠</span>首页</div>
+      <div class="tab" data-tab="plan"><span class="ti">📋</span>方案</div>
+      <div class="tab" data-tab="cart"><span class="ti">🛒</span>清单<span class="badge" id="tab-badge">0</span></div>
+      <div class="tab" data-tab="book"><span class="ti">📅</span>预约</div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="../assets/app-data.js"></script>
+  <script>
+    var SM = window.SPACE_MIRROR;
+    var D = SM.DIAGNOSIS, PL = SM.PRIORITY_LABEL;
+
+    function toast(msg) {
+      var t = document.getElementById('toast');
+      t.textContent = msg; t.classList.add('show');
+      clearTimeout(t._timer); t._timer = setTimeout(function () { t.classList.remove('show'); }, 2000);
+    }
+    function money(n) { return '¥' + n.toLocaleString(); }
+
+    /* ---- 首页 ---- */
+    function renderHome() {
+      document.getElementById('ov-bars').innerHTML = D.radar.map(function (r) {
+        return '<div class="mb"><div class="k">' + r.label.slice(0, 2) + '</div>' +
+          '<div class="track"><i style="width:' + r.score + '%"></i></div>' +
+          '<div class="v">' + r.score + '</div></div>';
+      }).join('');
+    }
+
+    /* ---- 方案 ---- */
+    function renderPlans() {
+      document.getElementById('plan-count').textContent = D.plans.length + ' 条建议';
+      document.getElementById('plan-list').innerHTML = D.plans.map(function (p) {
+        return '<div class="plan">' +
+          '<div class="ph"><div><div class="pt">' + p.group + '</div>' +
+            '<div class="pm">' + p.room + ' · ' + p.dimension + ' · ' + p.duration + '</div></div>' +
+            '<span class="prio ' + p.priority + '">' + PL[p.priority] + '优先</span></div>' +
+          '<div class="f"><span class="fk">问题</span><span class="fv">' + p.problem + '</span></div>' +
+          '<div class="f"><span class="fk">动作</span><span class="fv">' + p.action + '</span></div>' +
+          '<div class="f"><span class="fk">效果</span><span class="fv">' +
+            p.effect.replace(/约 (\d+)/, '<span class="up">约 $1</span>') + '</span></div>' +
+          '<div class="pf"><div class="pb">' + money(p.budgetMin) + '–' + money(p.budgetMax) + '</div>' +
+            '<button class="btn primary sm" data-add="' + p.id + '">加入清单</button></div>' +
+        '</div>';
+      }).join('');
+
+      document.getElementById('plan-list').querySelectorAll('[data-add]').forEach(function (b) {
+        b.onclick = function () {
+          var n = SM.addPlanToCart(b.dataset.add);
+          if (n > 0) { b.className = 'btn added sm'; b.textContent = '✓ 已加入'; toast('已加入购物清单 · ' + n + ' 件商品'); }
+          else { toast('清单中已有该方案商品'); }
+          renderBadge(); renderCart();
+        };
+      });
+    }
+
+    /* ---- 清单 ---- */
+    function renderCart() {
+      var cart = SM.getCart();
+      var el = document.getElementById('cart-body');
+      document.getElementById('cart-count').textContent = SM.cartCount() + ' 件商品';
+      if (!cart.length) {
+        el.innerHTML = '<div class="empty">还没有清单，去「方案」页加入改造商品</div>';
+        return;
+      }
+      var groups = {}, order = [];
+      cart.forEach(function (l) {
+        if (!groups[l.group]) { groups[l.group] = []; order.push(l.group); }
+        groups[l.group].push(l);
+      });
+      var html = order.map(function (g) {
+        return '<div class="grp"><div class="gh">' + g + '</div>' + groups[g].map(function (l) {
+          return '<div class="item">' +
+            '<div class="ic" style="background:hsl(' + (l.hue || 210) + ',70%,92%)">' + l.icon + '</div>' +
+            '<div><div class="nm">' + l.name + ' <span class="' + (l.required ? 'req' : 'opt') + '">' +
+              (l.required ? '必买' : '可选') + '</span></div>' +
+              '<div class="sp">' + l.spec + '</div>' +
+              '<div class="mc">来源：' + l.merchant + '</div></div>' +
+            '<div class="rt"><div class="pr">' + money(l.price * l.qty) + '</div>' +
+              '<div class="step"><button data-q="-1" data-pid="' + l.pid + '">−</button>' +
+              '<span>' + l.qty + '</span>' +
+              '<button data-q="1" data-pid="' + l.pid + '">+</button></div></div>' +
+          '</div>';
+        }).join('') + '</div>';
+      }).join('');
+
+      var total = SM.cartTotal(), disc = SM.cartDiscount(total);
+      html += '<div class="sum">' +
+        '<div class="r"><span class="k">商品件数</span><span>' + SM.cartCount() + '</span></div>' +
+        '<div class="r"><span class="k">合计</span><span>' + money(total) + '</span></div>' +
+        '<div class="r"><span class="k">套餐优惠</span><span style="color:var(--green)">−' + money(disc) + '</span></div>' +
+        '<div class="r tot"><span>优惠后合计</span><span class="v">' + money(total - disc) + '</span></div>' +
+        '<a class="submit" style="display:block;text-align:center;margin-top:12px;text-decoration:none" href="../booking/index.html">提交预约</a>' +
+      '</div>';
+      el.innerHTML = html;
+
+      el.querySelectorAll('[data-q]').forEach(function (b) {
+        b.onclick = function () {
+          SM.changeQty(b.dataset.pid, parseInt(b.dataset.q, 10));
+          renderCart(); renderBadge();
+        };
+      });
+    }
+
+    function renderBadge() {
+      var n = SM.cartCount();
+      var b = document.getElementById('tab-badge');
+      b.textContent = n; b.style.display = n > 0 ? 'inline-flex' : 'none';
+    }
+
+    /* ---- Tab 切换 ---- */
+    var TABS = ['home', 'plan', 'cart', 'book'];
+    document.querySelectorAll('.tab').forEach(function (t) {
+      t.onclick = function () {
+        document.querySelectorAll('.tab').forEach(function (x) { x.classList.remove('active'); });
+        t.classList.add('active');
+        var cur = t.dataset.tab;
+        TABS.forEach(function (k) {
+          document.getElementById('page-' + k).style.display = (k === cur) ? 'block' : 'none';
+        });
+        window.scrollTo(0, 0);
+      };
+    });
+    document.querySelector('[data-go="plan"]').onclick = function () {
+      document.querySelector('.tab[data-tab="plan"]').click();
+    };
+
+    /* ---- 预约 ---- */
+    document.getElementById('btn-book').onclick = function () {
+      var name = document.getElementById('f-name').value.trim();
+      var phone = document.getElementById('f-phone').value.trim();
+      if (!name || !phone) { toast('请填写姓名与电话'); return; }
+      try {
+        localStorage.setItem('spacemirror_booking_v1', JSON.stringify({
+          name: name, phone: phone,
+          time: document.getElementById('f-time').value,
+          need: document.getElementById('f-need').value.trim(),
+          at: new Date().toISOString()
+        }));
+      } catch (e) {}
+      toast('已提交，顾问 24h 内联系');
+    };
+
+    document.getElementById('cap-more').onclick = function () { toast('小程序菜单（演示）'); };
+    document.getElementById('cap-add').onclick = function () { toast('添加到我的小程序（演示）'); };
+
+    renderHome(); renderPlans(); renderCart(); renderBadge();
+  </script>
+</body>
+</html>

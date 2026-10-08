@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>空间镜 · 数字孪生家</title>
+  <link rel="stylesheet" href="../assets/app.css">
+</head>
+<body>
+  <div class="wrap">
+    <div class="topbar">
+      <a class="back" href="../account/index.html">‹</a>
+      <div>
+        <h1>数字孪生家</h1>
+        <div class="sub">已扫空间 · 跨设备资产</div>
+      </div>
+      <div class="right" id="add-btn">+ 新增</div>
+    </div>
+
+    <div class="container">
+      <div id="home-list"></div>
+      <div class="r-sub" style="text-align:center;margin-top:6px">重命名 / 分享 / 导出 glb·obj，手机采集的内容电脑端可直接打开编辑</div>
+    </div>
+
+    <div class="tabbar">
+      <a class="tab" href="../prototype/index.html"><span class="ti">🏠</span><span>原型</span></a>
+      <a class="tab" href="../plan/index.html"><span class="ti">📋</span><span>方案</span></a>
+      <a class="tab" href="../cart/index.html"><span class="ti">🛒</span><span>清单</span><span class="tab-badge" data-cart-badge>0</span></a>
+      <a class="tab active" href="../account/index.html"><span class="ti">👤</span><span>我的</span></a>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="../assets/app-data.js"></script>
+  <script>
+    var SM = window.SPACE_MIRROR;
+    SM.loadHomes();
+    var $ = function (id) { return document.getElementById(id); };
+    function toast(msg) {
+      var t = $('toast'); t.textContent = msg; t.classList.add('show');
+      clearTimeout(t._t); t._t = setTimeout(function () { t.classList.remove('show'); }, 1600);
+    }
+    function render() {
+      var list = $('home-list');
+      if (!SM.HOMES.length) {
+        list.innerHTML = '<div class="empty"><div class="e-ico">🏠</div>' +
+          '<div class="e-txt">还没有扫描记录<br><b>去原型页扫描你的第一个家</b></div></div>';
+        return;
+      }
+      list.innerHTML = SM.HOMES.map(function (h) {
+        return '<div class="home-card" data-id="' + h.id + '">' +
+          '<div class="home-thumb"><div class="ht-grid"></div>' +
+            '<div class="ht-badge">' + (h.shared ? '已分享' : '私有') + '</div>' +
+            '<div class="ht-name">' + h.name + '</div></div>' +
+          '<div class="home-body">' +
+            '<div class="home-meta"><span>📐 ' + h.area + '</span><span>🕒 ' + h.updated + '</span><span>📱 ' + h.device + '</span></div>' +
+            '<div class="home-acts">' +
+              '<div class="ha" data-act="rename">✏️ 重命名</div>' +
+              '<div class="ha" data-act="share">' + (h.shared ? '🔗 取消分享' : '🔗 分享') + '</div>' +
+              '<div class="ha" data-act="glb">⬇️ glb</div>' +
+              '<div class="ha" data-act="obj">⬇️ obj</div>' +
+            '</div>' +
+            '<div style="display:flex;gap:8px;margin-top:10px">' +
+              '<a class="btn primary" style="flex:1" href="../editor/index.html?home=' + h.id + '">🖥 电脑端打开编辑</a>' +
+              '<a class="btn ghost" style="flex:1" href="../compare/index.html?home=' + h.id + '">📊 复扫对比</a>' +
+            '</div>' +
+          '</div></div>';
+      }).join('');
+
+      list.querySelectorAll('.home-card').forEach(function (card) {
+        var id = card.getAttribute('data-id');
+        card.querySelectorAll('.ha').forEach(function (el) {
+          el.addEventListener('click', function (e) {
+            e.preventDefault(); e.stopPropagation();
+            var act = el.getAttribute('data-act');
+            if (act === 'rename') {
+              var h = SM.getHome(id);
+              var name = prompt('重命名空间', h.name);
+              if (name && name.trim()) { SM.renameHome(id, name.trim()); render(); toast('已重命名'); }
+            } else if (act === 'share') {
+              SM.toggleShare(id); render();
+              toast(SM.getHome(id).shared ? '已生成分享链接' : '已取消分享');
+            } else if (act === 'glb') {
+              toast('已导出 ' + SM.getHome(id).glb);
+            } else if (act === 'obj') {
+              toast('已导出 ' + SM.getHome(id).glb.replace('.glb', '.obj'));
+            }
+          });
+        });
+      });
+    }
+    $('add-btn').addEventListener('click', function () { toast('演示：在原型页扫码即可新增空间'); });
+    SM.renderBadges();
+    render();
+  </script>
+</body>
+</html>

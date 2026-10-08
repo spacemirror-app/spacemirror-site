@@ -3,41 +3,140 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-  <title>空间镜 · 商家工作台</title>
-  <link rel="stylesheet" href="../assets/app.css">
+  <title>空间镜 · 商家接单工作台</title>
+  <style>
+    :root{
+      --bg:#f4f6fb; --card:#ffffff; --text:#0f172a; --muted:#64748b;
+      --accent:#3b82f6; --teal:#22d3ee; --orange:#f59e0b; --green:#10b981;
+      --purple:#8b5cf6; --border:#e6eaf2; --radius:16px; --shadow:0 6px 24px rgba(15,23,42,.06);
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:system-ui,-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+      background:var(--bg);color:var(--text);line-height:1.5;padding-bottom:24px}
+    a{color:inherit;text-decoration:none}
+    .wrap{max-width:480px;margin:0 auto;background:var(--bg);min-height:100vh}
+
+    .topbar{
+      position:sticky;top:0;z-index:30;background:rgba(244,246,251,.92);
+      backdrop-filter:blur(12px);border-bottom:1px solid var(--border);
+      padding:12px 16px;display:flex;align-items:center;gap:10px;
+    }
+    .topbar .back{font-size:1.4rem;color:var(--muted);width:28px}
+    .topbar .shop{font-size:1.02rem;font-weight:800;display:flex;align-items:center;gap:6px}
+    .cert{font-size:.62rem;font-weight:700;padding:2px 7px;border-radius:999px;background:#ecfdf5;color:var(--green)}
+    .topbar .sub{font-size:.7rem;color:var(--muted);margin-top:2px}
+    .container{padding:14px 16px 16px}
+
+    /* 概览 4 宫格 */
+    .stats{background:linear-gradient(135deg,#0f172a,#1e293b);color:#fff;border-radius:20px;
+      padding:16px;box-shadow:0 12px 30px rgba(15,23,42,.22);margin-bottom:14px}
+    .stats .sh{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+    .stats .sh b{font-size:.85rem;font-weight:800}
+    .stats .sh span{font-size:.68rem;opacity:.75}
+    .grid4{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .scell{background:rgba(255,255,255,.12);border-radius:12px;padding:10px 12px}
+    .scell .k{font-size:.68rem;opacity:.85}
+    .scell .v{font-size:1.15rem;font-weight:800;margin-top:2px}
+    .withdraw{width:100%;margin-top:12px;border:none;border-radius:12px;padding:12px;
+      background:linear-gradient(135deg,#f59e0b,#fbbf24);color:#3b2606;font-weight:800;font-size:.85rem;cursor:pointer}
+    .withdraw:active{transform:scale(.98)}
+
+    /* Tab */
+    .tabs{display:flex;background:#eef2f7;border-radius:12px;padding:3px;margin-bottom:14px}
+    .tabs button{flex:1;border:none;background:transparent;font:inherit;font-size:.8rem;font-weight:700;
+      padding:8px 0;border-radius:10px;cursor:pointer;color:var(--muted)}
+    .tabs button.active{background:#fff;color:var(--text);box-shadow:0 2px 8px rgba(15,23,42,.08)}
+
+    /* 订单卡 */
+    .order{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+      padding:14px;margin-bottom:12px;box-shadow:var(--shadow)}
+    .order .oh{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+    .order .oc{font-size:.92rem;font-weight:800}
+    .order .op{font-size:.76rem;color:var(--muted);margin-top:3px}
+    .order .oa{font-size:1.05rem;font-weight:800;color:var(--orange);white-space:nowrap}
+    .order .ost{display:inline-block;font-size:.66rem;font-weight:700;padding:2px 8px;border-radius:999px;margin-top:8px}
+    .st-new{background:#fee2e2;color:#dc2626}
+    .st-doing{background:#dbeafe;color:#1d4ed8}
+    .st-done{background:#dcfce7;color:#16a34a}
+    .order .odesc{font-size:.76rem;color:#475569;margin-top:8px;padding-top:8px;border-top:1px dashed var(--border);line-height:1.5}
+    .btn{border:none;border-radius:12px;padding:11px 10px;font-weight:700;font-size:.82rem;
+      cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;transition:.15s}
+    .btn:active{transform:scale(.97)}
+    .btn.primary{background:var(--accent);color:#fff;box-shadow:0 6px 16px rgba(59,130,246,.28)}
+    .btn.ghost{background:#f1f5f9;color:#334155}
+    .btn.warn{background:#fff7ed;color:#c2410c}
+    .btn.done{background:#ecfdf5;color:var(--green)}
+    .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+
+    .empty{text-align:center;padding:40px 10px;color:var(--muted);font-size:.82rem}
+
+    /* 弹层 */
+    .mask{position:fixed;inset:0;background:rgba(15,23,42,.6);backdrop-filter:blur(4px);
+      z-index:100;display:none;align-items:flex-end;justify-content:center}
+    .mask.show{display:flex}
+    .sheet{background:#fff;border-radius:20px 20px 0 0;width:100%;max-width:480px;
+      max-height:86vh;overflow-y:auto;padding-bottom:20px}
+    .sheet-head{position:sticky;top:0;background:#fff;padding:14px 16px;border-bottom:1px solid var(--border);
+      display:flex;justify-content:space-between;align-items:center}
+    .sheet-head h3{font-size:1rem;font-weight:800}
+    .sheet-close{font-size:1.4rem;color:var(--muted);cursor:pointer;line-height:1}
+    .sheet-body{padding:14px 16px}
+    .sec-t{font-size:.76rem;font-weight:800;color:var(--muted);margin:14px 0 7px}
+    .sec-t:first-child{margin-top:0}
+    .kv{display:flex;justify-content:space-between;gap:10px;font-size:.82rem;padding:6px 0;border-bottom:1px dashed var(--border)}
+    .kv .k{color:var(--muted)}
+    .kv .v{font-weight:700;text-align:right}
+    .planbox{background:#f8fafc;border:1px solid var(--border);border-radius:12px;padding:12px}
+    .planbox .pt{font-size:.86rem;font-weight:800;margin-bottom:6px}
+    .amt{font-size:1.4rem;font-weight:800;color:var(--orange)}
+    .row2b{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+
+    .toast{position:fixed;left:50%;bottom:60px;transform:translate(-50%,20px);
+      background:rgba(15,23,42,.92);color:#fff;padding:11px 18px;border-radius:12px;font-size:.82rem;
+      opacity:0;transition:.25s;z-index:200;pointer-events:none}
+    .toast.show{opacity:1;transform:translate(-50%,0)}
+  </style>
 </head>
 <body>
   <div class="wrap">
     <div class="topbar">
       <a class="back" href="../account/index.html">‹</a>
       <div>
-        <h1>商家工作台</h1>
-        <div class="sub">B 端 · 远期演示</div>
+        <div class="shop">欧派旗舰店 <span class="cert">全屋定制 · 已认证</span></div>
+        <div class="sub">本月成交 ¥38,600 · 佣金 ¥3,860</div>
       </div>
     </div>
 
     <div class="container">
-      <div class="card" style="margin-bottom:14px;background:linear-gradient(135deg,#3b82f6,#22d3ee);color:#fff;border:none">
-        <div style="font-weight:800;font-size:1.1rem" id="m-shop">欧派旗舰店</div>
-        <div style="font-size:.78rem;opacity:.92" id="m-role">全屋定制 · 已认证</div>
+      <div class="stats">
+        <div class="sh"><b>数据概览</b><span id="settle-month"></span></div>
+        <div class="grid4">
+          <div class="scell"><div class="k">本月订单</div><div class="v" id="s-orders">12</div></div>
+          <div class="scell"><div class="k">GMV</div><div class="v" id="s-gmv">¥38,600</div></div>
+          <div class="scell"><div class="k">累计佣金</div><div class="v" id="s-comm">¥3,860</div></div>
+          <div class="scell"><div class="k">已结算</div><div class="v" id="s-paid">¥3,200</div></div>
+        </div>
+        <button class="withdraw" id="btn-withdraw">可提现 ¥3,200 → 提现</button>
       </div>
 
-      <div class="profile-grid" style="margin-top:0">
-        <div class="pg-cell"><div class="k">本月订单</div><div class="v" id="m-orders">0</div></div>
-        <div class="pg-cell"><div class="k">本月 GMV</div><div class="v" id="m-gmv">¥0</div></div>
-        <div class="pg-cell"><div class="k">应结佣金</div><div class="v" id="m-comm">¥0</div></div>
-        <div class="pg-cell"><div class="k">已结算</div><div class="v" id="m-paid">¥0</div></div>
+      <div class="tabs" id="tabs">
+        <button data-tab="待接单" class="active">待接单</button>
+        <button data-tab="进行中">进行中</button>
+        <button data-tab="已完成">已完成</button>
       </div>
 
-      <div style="font-weight:800;margin:16px 0 10px">方案派单</div>
       <div id="order-list"></div>
     </div>
+  </div>
 
-    <div class="tabbar">
-      <a class="tab" href="../prototype/index.html"><span class="ti">🏠</span><span>原型</span></a>
-      <a class="tab" href="../plan/index.html"><span class="ti">📋</span><span>方案</span></a>
-      <a class="tab" href="../cart/index.html"><span class="ti">🛒</span><span>清单</span><span class="tab-badge" data-cart-badge>0</span></a>
-      <a class="tab active" href="../account/index.html"><span class="ti">👤</span><span>我的</span></a>
+  <!-- 订单详情弹层 -->
+  <div class="mask" id="mask">
+    <div class="sheet">
+      <div class="sheet-head">
+        <h3 id="sheet-title">订单详情</h3>
+        <div class="sheet-close" id="sheet-close">×</div>
+      </div>
+      <div class="sheet-body" id="sheet-body"></div>
     </div>
   </div>
 
@@ -46,40 +145,126 @@
   <script src="../assets/app-data.js"></script>
   <script>
     var SM = window.SPACE_MIRROR;
-    var $ = function (id) { return document.getElementById(id); };
-    function toast(m){var t=$('toast');t.textContent=m;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(function(){t.classList.remove('show');},1600);}
+    var M = SM.MERCHANT, D = SM.DIAGNOSIS;
 
-    var M = SM.MERCHANT;
-    $('m-shop').textContent = M.shop;
-    $('m-role').textContent = M.role;
-    $('m-orders').textContent = M.settle.orders;
-    $('m-gmv').textContent = '¥' + M.settle.gmv.toLocaleString();
-    $('m-comm').textContent = '¥' + M.settle.commission.toLocaleString();
-    $('m-paid').textContent = '¥' + M.settle.paid.toLocaleString();
+    // 订单 → 方案映射（方案内容从 plan 数据带过来）
+    var PLAN_MAP = {
+      '阳台采光改造': 'balcony-light',
+      '主卧收纳扩容': 'bedroom-storage',
+      '客厅收纳整理': 'living-storage'
+    };
+    // 订单 → Tab 分组
+    function tabOf(status) {
+      if (status === '待接单') return '待接单';
+      if (status === '已完成') return '已完成';
+      return '进行中';
+    }
+    var STATUS_CLASS = { '待接单': 'st-new', '方案中': 'st-doing', '已完成': 'st-done' };
+    var currentTab = '待接单';
 
-    var STATUS_TAG = { '待接单': 'amber', '方案中': 'gray', '已完成': 'green' };
-    $('order-list').innerHTML = M.orders.map(function (o) {
-      return '<div class="card" style="margin-bottom:10px">' +
-        '<div style="display:flex;justify-content:space-between;align-items:center">' +
-          '<div style="font-weight:800">' + o.customer + '</div>' +
-          '<span class="tag ' + (STATUS_TAG[o.status] || 'gray') + '">' + o.status + '</span>' +
-        '</div>' +
-        '<div class="r-sub" style="margin:4px 0 10px">方案：' + o.plan + ' · ¥' + o.amount.toLocaleString() + '</div>' +
-        '<div style="display:flex;gap:8px">' +
-          '<button class="btn primary" style="flex:1" data-oid="' + o.id + '" data-act="接单"' + (o.status !== '待接单' ? ' disabled' : '') + '>接单</button>' +
-          '<button class="btn ghost" style="flex:1" data-oid="' + o.id + '" data-act="方案">查看方案</button>' +
-        '</div></div>';
-    }).join('');
+    function toast(msg) {
+      var t = document.getElementById('toast');
+      t.textContent = msg; t.classList.add('show');
+      clearTimeout(t._timer); t._timer = setTimeout(function () { t.classList.remove('show'); }, 2000);
+    }
+    function money(n) { return '¥' + n.toLocaleString(); }
 
-    $('order-list').querySelectorAll('button').forEach(function (b) {
-      b.addEventListener('click', function () {
-        var act = b.getAttribute('data-act');
-        if (act === '接单') toast('已接单，进入方案沟通');
-        else toast('打开方案详情（演示）');
+    function renderStats() {
+      var s = M.settle;
+      document.getElementById('settle-month').textContent = s.month + ' 结算周期';
+      document.getElementById('s-orders').textContent = s.orders;
+      document.getElementById('s-gmv').textContent = money(s.gmv);
+      document.getElementById('s-comm').textContent = money(s.commission);
+      document.getElementById('s-paid').textContent = money(s.paid);
+      document.getElementById('btn-withdraw').textContent = '可提现 ' + money(s.paid) + ' → 提现';
+    }
+
+    function renderOrders() {
+      var list = M.orders.filter(function (o) { return tabOf(o.status) === currentTab; });
+      var el = document.getElementById('order-list');
+      if (!list.length) {
+        el.innerHTML = '<div class="empty">该状态下暂无订单</div>';
+        return;
+      }
+      el.innerHTML = list.map(function (o) {
+        var p = D.plans.filter(function (x) { return x.id === PLAN_MAP[o.plan]; })[0];
+        var actions = '';
+        if (o.status === '待接单') {
+          actions = '<div class="row2">' +
+            '<button class="btn ghost" data-act="reject" data-id="' + o.id + '">婉拒</button>' +
+            '<button class="btn primary" data-act="accept" data-id="' + o.id + '">接单</button></div>';
+        } else if (o.status === '已完成') {
+          actions = '<div class="row2">' +
+            '<button class="btn done" data-act="review" data-id="' + o.id + '">查看评价</button>' +
+            '<button class="btn ghost" data-act="detail" data-id="' + o.id + '">订单详情</button></div>';
+        } else {
+          actions = '<div class="row2">' +
+            '<button class="btn warn" data-act="upload-plan" data-id="' + o.id + '">上传方案</button>' +
+            '<button class="btn ghost" data-act="upload-progress" data-id="' + o.id + '">上传施工进度</button></div>';
+        }
+        return '<div class="order">' +
+          '<div class="oh"><div><div class="oc">' + o.customer + '</div>' +
+            '<div class="op">' + o.plan + (p ? ' · ' + p.room + ' · ' + p.dimension : '') + '</div></div>' +
+            '<div class="oa">' + money(o.amount) + '</div></div>' +
+          '<span class="ost ' + (STATUS_CLASS[o.status] || 'st-doing') + '">' + o.status + '</span>' +
+          (p ? '<div class="odesc">' + p.problem + ' → ' + p.action + '</div>' : '') +
+          actions +
+        '</div>';
+      }).join('');
+
+      el.querySelectorAll('[data-act]').forEach(function (b) {
+        b.onclick = function () {
+          var id = b.dataset.id, act = b.dataset.act;
+          var o = M.orders.filter(function (x) { return x.id === id; })[0];
+          if (act === 'accept') { o.status = '方案中'; toast('已接单 · 请尽快上传方案'); renderOrders(); }
+          else if (act === 'reject') { toast('已婉拒该订单'); }
+          else if (act === 'upload-plan') { toast('方案已上传 · 等待客户确认'); }
+          else if (act === 'upload-progress') { toast('施工进度已上传（演示）'); }
+          else if (act === 'review') { toast('客户评价：★★★★★ 改造效果超出预期'); }
+          else openDetail(id);
+        };
       });
-    });
+    }
 
-    SM.renderBadges();
+    function openDetail(id) {
+      var o = M.orders.filter(function (x) { return x.id === id; })[0];
+      var p = D.plans.filter(function (x) { return x.id === PLAN_MAP[o.plan]; })[0];
+      document.getElementById('sheet-title').textContent = o.plan + ' · 订单详情';
+      var body = '<div class="sec-t">客户信息</div>' +
+        '<div class="kv"><span class="k">房子</span><span class="v">' + o.customer + '</span></div>' +
+        '<div class="kv"><span class="k">改造项</span><span class="v">' + o.plan + '</span></div>' +
+        '<div class="kv"><span class="k">订单状态</span><span class="v">' + o.status + '</span></div>' +
+        '<div class="sec-t">方案内容</div>' +
+        '<div class="planbox">' +
+          '<div class="pt">' + (p ? p.group : o.plan) + '</div>' +
+          '<div class="kv"><span class="k">问题</span><span class="v">' + (p ? p.problem : '—') + '</span></div>' +
+          '<div class="kv"><span class="k">动作</span><span class="v">' + (p ? p.action : '—') + '</span></div>' +
+          '<div class="kv"><span class="k">效果</span><span class="v">' + (p ? p.effect : '—') + '</span></div>' +
+        '</div>' +
+        '<div class="sec-t">金额</div>' +
+        '<div class="amt">' + money(o.amount) + '</div>' +
+        '<div class="row2b">' +
+          '<button class="btn ghost" id="btn-contact">联系客户</button>' +
+          '<button class="btn primary" id="btn-photo">上传进度照片</button>' +
+        '</div>';
+      document.getElementById('sheet-body').innerHTML = body;
+      document.getElementById('mask').classList.add('show');
+      document.getElementById('btn-contact').onclick = function () { toast('演示中 · 真实环境将呼叫客户'); };
+      document.getElementById('btn-photo').onclick = function () { toast('进度照片已上传（演示）'); };
+    }
+
+    document.getElementById('tabs').querySelectorAll('button').forEach(function (b) {
+      b.onclick = function () {
+        document.getElementById('tabs').querySelectorAll('button').forEach(function (x) { x.classList.remove('active'); });
+        b.classList.add('active');
+        currentTab = b.dataset.tab; renderOrders();
+      };
+    });
+    document.getElementById('btn-withdraw').onclick = function () { toast('提现申请已提交 · 预计 1–3 个工作日到账（演示）'); };
+    document.getElementById('sheet-close').onclick = function () { document.getElementById('mask').classList.remove('show'); };
+    document.getElementById('mask').onclick = function (e) { if (e.target === this) this.classList.remove('show'); };
+
+    renderStats(); renderOrders();
   </script>
 </body>
 </html>
