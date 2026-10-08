@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>空间镜 · 复扫对比</title>
+  <link rel="stylesheet" href="../assets/app.css">
+</head>
+<body>
+  <div class="wrap">
+    <div class="topbar">
+      <a class="back" href="../homes/index.html">‹</a>
+      <div>
+        <h1>复扫对比</h1>
+        <div class="sub" id="cmp-sub">改造前 → 改造后</div>
+      </div>
+      <div class="right" id="rescan-btn">重新扫描</div>
+    </div>
+
+    <div class="container">
+      <div class="cmp-head">
+        <div class="ch-t" id="cmp-home">阳光花园 · 89㎡ 三居</div>
+        <div class="ch-n">空间健康度提升</div>
+        <div class="cmp-score-big">
+          <div class="cs"><span class="n" id="before-score">72</span><span class="l">改造前</span></div>
+          <div class="cs"><span class="n" id="after-score">84</span><span class="l">改造后</span></div>
+          <div class="delta" id="delta">+12</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div style="font-weight:800;margin-bottom:10px">四维分数前后对比</div>
+        <div class="dimbars" id="dimbars"></div>
+        <div class="r-sub" style="margin-top:8px">改造后重新扫描，分数自动回流，模型越用越准（增长飞轮：数据回流 → 诊断更精准）。</div>
+      </div>
+
+      <div class="share-card">
+        <div class="sc-top">
+          <div class="sct-t">我的空间改造成果</div>
+          <div class="sct-d" id="sc-date">改造前 2026-10-07 · 改造后 2026-11-20</div>
+        </div>
+        <div class="sc-body">
+          <div class="sc-badge" id="sc-badge">+12</div>
+          <div>
+            <div style="font-weight:800" id="sc-home">阳光花园 · 89㎡ 三居</div>
+            <div class="r-sub" id="sc-dims">采光 58→85 · 收纳 45→80</div>
+          </div>
+          <button class="btn primary" id="share-btn" style="margin-left:auto;padding:9px 14px">分享</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="tabbar">
+      <a class="tab" href="../prototype/index.html"><span class="ti">🏠</span><span>原型</span></a>
+      <a class="tab" href="../plan/index.html"><span class="ti">📋</span><span>方案</span></a>
+      <a class="tab" href="../cart/index.html"><span class="ti">🛒</span><span>清单</span><span class="tab-badge" data-cart-badge>0</span></a>
+      <a class="tab active" href="../account/index.html"><span class="ti">👤</span><span>我的</span></a>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="../assets/app-data.js"></script>
+  <script>
+    var SM = window.SPACE_MIRROR;
+    var $ = function (id) { return document.getElementById(id); };
+    function toast(m){var t=$('toast');t.textContent=m;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(function(){t.classList.remove('show');},1600);}
+
+    var homeId = new URLSearchParams(location.search).get('home') || 'h1';
+    var home = SM.getHome ? SM.getHome(homeId) : null;
+    if (home) { $('cmp-home').textContent = home.name; $('sc-home').textContent = home.name; }
+
+    function render() {
+      var R = SM.RESCAN;
+      var b = SM.rescanComposite(R.before), a = SM.rescanComposite(R.after);
+      $('before-score').textContent = b;
+      $('after-score').textContent = a;
+      $('delta').textContent = '+' + (a - b);
+      $('sc-badge').textContent = '+' + (a - b);
+      $('sc-date').textContent = '改造前 ' + R.dateBefore + ' · 改造后 ' + R.dateAfter;
+      $('cmp-sub').textContent = R.dateBefore + ' → ' + R.dateAfter;
+
+      $('dimbars').innerHTML = R.before.map(function (dim, i) {
+        var af = R.after[i];
+        return '<div class="dimbar"><div class="db-top"><span class="db-name">' + dim.label +
+          '</span><span class="db-val">' + dim.score + ' → <b style="color:var(--green)">' + af.score + '</b> （+' + (af.score - dim.score) + '）</span></div>' +
+          '<div class="db-track"><div class="db-before" style="width:' + dim.score + '%"></div>' +
+          '<div class="db-after" style="width:' + af.score + '%"></div></div></div>';
+      }).join('');
+
+      var changed = R.before.map(function (d, i) { return d.label.replace('流畅', '').replace('充足', '').replace('合理', '').replace('控制', '') + ' ' + d.score + '→' + R.after[i].score; }).join(' · ');
+      $('sc-dims').textContent = changed;
+    }
+
+    $('rescan-btn').addEventListener('click', function () {
+      toast('正在重新扫描…（演示：分数已为改造后实测）');
+    });
+    $('share-btn').addEventListener('click', function () {
+      toast('改造成果卡已复制到剪贴板，可分享');
+    });
+
+    SM.renderBadges();
+    render();
+  </script>
+</body>
+</html>

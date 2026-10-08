@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>空间镜 · 会员与订阅</title>
+  <link rel="stylesheet" href="../assets/app.css">
+</head>
+<body>
+  <div class="wrap">
+    <div class="topbar">
+      <a class="back" href="../account/index.html">‹</a>
+      <div>
+        <h1>会员与订阅</h1>
+        <div class="sub">解锁高级能力</div>
+      </div>
+    </div>
+
+    <div class="container">
+      <div class="card" style="margin-bottom:14px;background:linear-gradient(135deg,#8b5cf6,#3b82f6);color:#fff;border:none">
+        <div style="font-weight:800;font-size:1rem">当前档位：<span id="cur-plan">免费版</span></div>
+        <div style="font-size:.8rem;opacity:.92;margin-top:4px">升级后解锁无限扫描、AI 方案、AR 叠加与跨设备编辑。</div>
+      </div>
+      <div id="plan-list"></div>
+      <div class="r-sub" style="text-align:center;margin-top:8px">订阅即视为同意《会员服务协议》，可随时在账号页退订（演示）。</div>
+    </div>
+
+    <div class="tabbar">
+      <a class="tab" href="../prototype/index.html"><span class="ti">🏠</span><span>原型</span></a>
+      <a class="tab" href="../plan/index.html"><span class="ti">📋</span><span>方案</span></a>
+      <a class="tab" href="../cart/index.html"><span class="ti">🛒</span><span>清单</span><span class="tab-badge" data-cart-badge>0</span></a>
+      <a class="tab active" href="../account/index.html"><span class="ti">👤</span><span>我的</span></a>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="../assets/app-data.js"></script>
+  <script>
+    var SM = window.SPACE_MIRROR;
+    SM.loadAccount();
+    var $ = function (id) { return document.getElementById(id); };
+    function toast(m){var t=$('toast');t.textContent=m;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(function(){t.classList.remove('show');},1600);}
+
+    $('cur-plan').textContent = SM.ACCOUNT.plan;
+    $('plan-list').innerHTML = SM.MEMBERSHIP.plans.map(function (p) {
+      var isCur = p.name === SM.ACCOUNT.plan;
+      return '<div class="card" style="margin-bottom:12px;border:' + (isCur ? '2px solid var(--accent)' : '1px solid var(--border)') + '">' +
+        '<div style="display:flex;align-items:baseline;justify-content:space-between">' +
+          '<div style="font-weight:800;font-size:1.05rem">' + p.name + (isCur ? ' <span class="tag green">当前</span>' : '') + '</div>' +
+          '<div style="font-weight:800;color:var(--accent)">' + (p.price === 0 ? '免费' : '¥' + p.price) + '<span style="font-size:.72rem;color:var(--muted);font-weight:500">/' + p.per + '</span></div>' +
+        '</div>' +
+        '<div style="margin:10px 0">' + p.feats.map(function (f) {
+          return '<div style="font-size:.84rem;padding:4px 0">✅ ' + f + '</div>';
+        }).join('') + '</div>' +
+        '<button class="btn ' + (isCur ? 'added' : 'primary') + ' block" data-pid="' + p.id + '" ' + (isCur ? 'disabled' : '') + '>' +
+          (isCur ? '使用中' : (p.price === 0 ? '当前即为免费版' : '升级到' + p.name)) + '</button>' +
+        '</div>';
+    }).join('');
+
+    $('plan-list').querySelectorAll('[data-pid]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        if (b.disabled) return;
+        var pid = b.getAttribute('data-pid');
+        if (pid === 'free') { SM.upgrade('free'); toast('已切换为免费版'); }
+        else { SM.upgrade(pid); toast('已升级到' + SM.MEMBERSHIP.plans.filter(function (x) { return x.id === pid; })[0].name + ' ✅'); }
+        location.reload();
+      });
+    });
+
+    SM.renderBadges();
+  </script>
+</body>
+</html>

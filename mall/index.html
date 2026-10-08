@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>空间镜 · 逛街实景孪生</title>
+  <link rel="stylesheet" href="../assets/app.css">
+</head>
+<body>
+  <div class="wrap">
+    <div class="topbar">
+      <a class="back" href="../prototype/index.html">‹</a>
+      <div>
+        <h1>逛街实景孪生</h1>
+        <div class="sub">门店内预览 · 购物决策前置</div>
+      </div>
+    </div>
+
+    <div class="container">
+      <div class="card" style="margin-bottom:14px;background:linear-gradient(135deg,#0ea5e9,#3b82f6);color:#fff;border:none">
+        <div style="font-weight:800;font-size:1rem">把方案带进店里看</div>
+        <div style="font-size:.8rem;opacity:.92;margin-top:4px">你诊断方案里的商品，可在对应门店实景预览后再下单，避免买错。</div>
+      </div>
+      <div id="mall-list"></div>
+    </div>
+
+    <div class="tabbar">
+      <a class="tab" href="../prototype/index.html"><span class="ti">🏠</span><span>原型</span></a>
+      <a class="tab" href="../plan/index.html"><span class="ti">📋</span><span>方案</span></a>
+      <a class="tab" href="../cart/index.html"><span class="ti">🛒</span><span>清单</span><span class="tab-badge" data-cart-badge>0</span></a>
+      <a class="tab active" href="../account/index.html"><span class="ti">👤</span><span>我的</span></a>
+    </div>
+  </div>
+
+  <!-- 进店预览弹层 -->
+  <div class="modal-mask" id="store-modal">
+    <div class="modal">
+      <div class="modal-head"><h3 id="sm-name">门店预览</h3><span class="modal-close" id="sm-close">×</span></div>
+      <div style="height:200px;position:relative;overflow:hidden;background:linear-gradient(135deg,#1e293b,#0ea5e9)">
+        <div style="position:absolute;inset:0;opacity:.35;background-image:linear-gradient(#fff2 1px,transparent 1px),linear-gradient(90deg,#fff2 1px,transparent 1px);background-size:30px 30px"></div>
+        <div style="position:absolute;left:16px;bottom:14px;color:#fff;font-weight:800">🏬 店内实景（AR 预览）</div>
+        <div style="position:absolute;right:14px;top:14px;background:rgba(16,185,129,.92);color:#fff;font-size:.7rem;font-weight:700;padding:3px 9px;border-radius:999px" id="sm-live">LIVE</div>
+      </div>
+      <div class="cmp-foot">
+        <div style="font-weight:800;margin-bottom:8px">你方案里可在此体验的商品</div>
+        <div id="sm-items"></div>
+        <button class="btn primary block" id="sm-nav" style="margin-top:12px">🧭 导航到店</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="../assets/app-data.js"></script>
+  <script>
+    var SM = window.SPACE_MIRROR;
+    var $ = function (id) { return document.getElementById(id); };
+    function toast(m){var t=$('toast');t.textContent=m;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(function(){t.classList.remove('show');},1600);}
+
+    $('mall-list').innerHTML = SM.MALL.map(function (s) {
+      return '<div class="card" style="margin-bottom:12px">' +
+        '<div style="display:flex;align-items:center;gap:10px">' +
+          '<div style="width:46px;height:46px;border-radius:12px;background:hsl(' + s.hue + ',70%,92%);color:hsl(' + s.hue + ',70%,45%);display:grid;place-items:center;font-size:1.4rem">🏬</div>' +
+          '<div style="flex:1"><div style="font-weight:800">' + s.name + ' ' + (s.live ? '<span class="tag green">直播中</span>' : '<span class="tag gray">预约</span>') + '</div>' +
+          '<div class="r-sub">' + s.cat + ' · ' + s.dist + '</div></div>' +
+        '</div>' +
+        '<div style="display:flex;gap:6px;flex-wrap:wrap;margin:10px 0">' +
+          s.tags.map(function (t) { return '<span class="tag">' + t + '</span>'; }).join('') + '</div>' +
+        '<div style="font-size:.78rem;color:var(--muted);margin-bottom:8px">你方案中的 ' + s.items.length + ' 件商品在该店有现货</div>' +
+        '<div style="display:flex;gap:8px">' +
+          '<button class="btn primary" style="flex:1" data-store="' + s.id + '">🔍 进店预览</button>' +
+          '<button class="btn ghost" style="flex:1" data-nav="' + s.name + '">🧭 导航</button>' +
+        '</div></div>';
+    }).join('');
+
+    $('mall-list').querySelectorAll('[data-store]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        var s = SM.MALL.filter(function (x) { return x.id === b.getAttribute('data-store'); })[0];
+        $('sm-name').textContent = s.name;
+        $('sm-live').style.display = s.live ? '' : 'none';
+        $('sm-items').innerHTML = s.items.map(function (it) {
+          return '<div style="display:flex;justify-content:space-between;padding:8px 0;border-top:1px dashed var(--border)">' +
+            '<span>🛍 ' + it.n + '</span><span style="font-weight:700">¥' + it.price.toLocaleString() + '</span></div>';
+        }).join('');
+        $('store-modal').classList.add('show');
+      });
+    });
+    $('mall-list').querySelectorAll('[data-nav]').forEach(function (b) {
+      b.addEventListener('click', function () { toast('已为你规划到「' + b.getAttribute('data-nav') + '」的路线'); });
+    });
+    $('sm-close').addEventListener('click', function () { $('store-modal').classList.remove('show'); });
+    $('store-modal').addEventListener('click', function (e) { if (e.target === this) this.classList.remove('show'); });
+    $('sm-nav').addEventListener('click', function () { toast('已规划到店路线'); $('store-modal').classList.remove('show'); });
+
+    SM.renderBadges();
+  </script>
+</body>
+</html>

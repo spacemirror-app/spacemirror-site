@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>空间镜 · 孪生编辑（PC）</title>
+  <link rel="stylesheet" href="../assets/app.css">
+  <style>
+    body{padding-bottom:0}
+    .pc-top{max-width:980px;margin:14px auto 0;display:flex;align-items:center;gap:10px;padding:0 12px}
+    .pc-top .back{font-size:1.4rem;color:var(--muted)}
+    .pc-top h1{font-size:1.05rem;font-weight:800}
+    .pc-top .sub{font-size:.72rem;color:var(--muted)}
+    .pc-top .sync{margin-left:auto;font-size:.74rem;color:var(--green);font-weight:700;background:#ecfdf5;padding:5px 11px;border-radius:999px}
+    .pc-stagewrap{max-width:980px;margin:12px auto}
+  </style>
+</head>
+<body>
+  <div class="pc-top">
+    <a class="back" href="../homes/index.html">‹</a>
+    <div><h1 id="ed-title">孪生编辑</h1><div class="sub">手机采集 → 电脑编辑 · 宽屏工作流</div></div>
+    <div class="sync">☁ 已同步至手机</div>
+  </div>
+
+  <div class="pc-stagewrap">
+    <div class="pc-shell">
+      <!-- 左：房间列表 -->
+      <div class="pc-side">
+        <div class="ps-t">房间</div>
+        <div id="room-list"></div>
+        <div class="ps-t" style="margin-top:16px">视图</div>
+        <div class="pc-room" data-view="2d" style="background:var(--accent);color:#fff">📐 平面 2D</div>
+        <div class="pc-room" data-view="3d">🧊 立体 3D</div>
+      </div>
+
+      <!-- 中：户型舞台 -->
+      <div class="pc-stage" id="stage">
+        <div class="pc-floor"></div>
+        <div class="pc-roomlabel" id="stage-room">客厅</div>
+        <div class="pc-overlay" id="overlay"></div>
+        <div class="pc-obj" data-x="30" data-y="55" style="left:30%;top:55%;width:120px;height:70px;background:#5b6b86">🛋 沙发</div>
+        <div class="pc-obj" data-x="20" data-y="30" style="left:20%;top:30%;width:90px;height:60px;background:#8a7355">📺 电视柜</div>
+        <div class="pc-obj" data-x="62" data-y="40" style="left:62%;top:40%;width:80px;height:80px;background:#22d3ee">🪴 绿植</div>
+        <div class="pc-tag" style="left:48%;top:42%">采光 58</div>
+        <div class="pc-tag" style="left:36%;top:70%">动线 72</div>
+      </div>
+
+      <!-- 右：编辑面板 -->
+      <div class="pc-panel">
+        <h4>编辑 · <span id="panel-room">客厅</span></h4>
+        <div class="switch"><span>AR 信息叠加</span><div class="sw" id="sw-ar"></div></div>
+        <div class="switch"><span>显示诊断标签</span><div class="sw on" id="sw-tag"></div></div>
+        <div class="pc-ctrl">
+          <label>整体亮度 <span id="bright-v">100%</span></label>
+          <input type="range" id="bright" min="60" max="140" value="100">
+        </div>
+        <div class="pc-ctrl">
+          <label>家具密度 <span id="dens-v">舒适</span></label>
+          <input type="range" id="dens" min="0" max="2" value="1">
+        </div>
+        <div class="pc-ctrl">
+          <label>选中物体位置（拖动舞台中的物体也可）</label>
+          <input type="range" id="pos" min="0" max="100" value="30">
+        </div>
+        <button class="btn primary block" id="save-btn">保存并同步到手机</button>
+        <div class="pc-hint">💡 在电脑上拖动画布中的家具即可调整布局；保存后手机端方案页会实时更新孪生视图，体现「采集—编辑」跨端分工。</div>
+      </div>
+    </div>
+
+    <div class="pc-split">
+      <div class="pc-chip"><div class="pc-t">📱</div><div class="pc-l">手机：3 分钟扫描采集</div></div>
+      <div class="pc-chip"><div class="pc-t">🖥</div><div class="pc-l">电脑：宽屏精细编辑</div></div>
+      <div class="pc-chip"><div class="pc-t">🔄</div><div class="pc-l">修改实时双向同步</div></div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="../assets/app-data.js"></script>
+  <script>
+    var SM = window.SPACE_MIRROR;
+    var $ = function (id) { return document.getElementById(id); };
+    function toast(m){var t=$('toast');t.textContent=m;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(function(){t.classList.remove('show');},1600);}
+
+    // 读取 ?home=
+    var homeId = new URLSearchParams(location.search).get('home') || 'h1';
+    var home = SM.getHome ? SM.getHome(homeId) : null;
+    if (home) $('ed-title').textContent = home.name + ' · 孪生编辑';
+
+    var ROOMS = ['客厅', '主卧', '厨房', '阳台'];
+    $('room-list').innerHTML = ROOMS.map(function (r, i) {
+      return '<div class="pc-room' + (i === 0 ? ' active' : '') + '" data-room="' + r + '">' + r + '<span class="dot"></span></div>';
+    }).join('');
+    $('room-list').querySelectorAll('.pc-room').forEach(function (el) {
+      el.addEventListener('click', function () {
+        $('room-list').querySelectorAll('.pc-room').forEach(function (x) { x.classList.remove('active'); });
+        el.classList.add('active');
+        $('stage-room').textContent = el.getAttribute('data-room');
+        $('panel-room').textContent = el.getAttribute('data-room');
+      });
+    });
+    document.querySelectorAll('[data-view]').forEach(function (el) {
+      el.addEventListener('click', function () {
+        document.querySelectorAll('[data-view]').forEach(function (x) { x.classList.remove('active'); x.style.background = ''; x.style.color = ''; });
+        el.classList.add('active'); el.style.background = 'var(--accent)'; el.style.color = '#fff';
+        toast(el.getAttribute('data-view') === '3d' ? '已切换到立体视图' : '已切换到平面视图');
+      });
+    });
+
+    // AR 叠加开关
+    $('sw-ar').addEventListener('click', function () {
+      this.classList.toggle('on');
+      $('overlay').classList.toggle('on', this.classList.contains('on'));
+    });
+    // 标签开关
+    $('sw-tag').addEventListener('click', function () {
+      this.classList.toggle('on');
+      document.querySelectorAll('.pc-tag').forEach(function (t) { t.style.display = this.classList.contains('on') ? '' : 'none'; }, this);
+    });
+    // 亮度
+    $('bright').addEventListener('input', function () {
+      $('bright-v').textContent = this.value + '%';
+      $('stage').style.filter = 'brightness(' + (this.value / 100) + ')';
+    });
+    // 密度
+    var DENS = ['紧凑', '舒适', '宽松'];
+    $('dens').addEventListener('input', function () { $('dens-v').textContent = DENS[+this.value]; });
+    // 位置
+    $('pos').addEventListener('input', function () {
+      var sofa = document.querySelector('.pc-obj'); if (sofa) sofa.style.left = this.value + '%';
+    });
+    // 拖动物体
+    var stage = $('stage');
+    stage.querySelectorAll('.pc-obj').forEach(function (obj) {
+      obj.addEventListener('pointerdown', function (e) {
+        e.preventDefault(); var rect = stage.getBoundingClientRect();
+        function move(ev) {
+          var x = ((ev.clientX - rect.left) / rect.width) * 100;
+          var y = ((ev.clientY - rect.top) / rect.height) * 100;
+          obj.style.left = Math.max(2, Math.min(92, x)) + '%';
+          obj.style.top = Math.max(2, Math.min(86, y)) + '%';
+        }
+        function up() { document.removeEventListener('pointermove', move); document.removeEventListener('pointerup', up); }
+        document.addEventListener('pointermove', move); document.addEventListener('pointerup', up);
+      });
+    });
+    $('save-btn').addEventListener('click', function () { toast('已保存并同步到手机 ✅'); });
+  </script>
+</body>
+</html>

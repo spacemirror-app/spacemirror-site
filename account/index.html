@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-page-node-id="iKnMmDrvLdfJdNDyEa9itP">
+<head data-page-node-id="1SybqLAlfV0thYcBHBE26d">
+  <meta charset="UTF-8" data-page-node-id="NqlQV2lqUEbsdIvyvIOIQX">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" data-page-node-id="JH8R4b2pP8BRMq4T5OZU3G">
+  <title>空间镜 · 我的</title>
+  <link rel="stylesheet" href="../assets/app.css" data-page-node-id="9wowtZVAxBDVBXcOvZHlXT">
+</head>
+<body data-page-node-id="8IqEkANB2Fn9EnrbSqMlr6">
+  <div class="wrap" data-page-node-id="O9wSUZ31Bikwc84BLA61OL">
+    <div class="topbar" data-page-node-id="412GC2hFKVUunmxu3JOHNX">
+      <div data-page-node-id="vNlGAKA9iZ4txzjaWCzrVk">
+        <h1 data-page-node-id="5jEosSzXAbFVk0LVBWP2YU">我的</h1>
+        <div class="sub" data-page-node-id="fxqSmBpPF3zBTBXbU1E7NM">账号 · 多端同步</div>
+      </div>
+      <div class="right" id="logout-btn" style="display:none" data-page-node-id="wvbS60n7bWvXNGP8UBOd4J">退出</div>
+    </div>
+
+    <div class="container" data-page-node-id="6coye5wGvXneAzg4MbWUuV">
+      <!-- 未登录：登录表单 -->
+      <div id="auth-view" data-page-node-id="Ya28oEw5QEmEO4H4NhjVtv">
+        <div class="auth-hero" data-page-node-id="u2KkAeg2iCpwCoUqJWJEY6">
+          <div class="ah-t" data-page-node-id="Yx64w2inFzC2DDuny9oEDG">欢迎使用空间镜</div>
+          <div class="ah-n" data-page-node-id="KlYLdDvBZppbApjHjOhRLE">登录后开启跨设备空间资产</div>
+          <div class="ah-d" data-page-node-id="yVngqchbJxDow7Olqjly7B">手机采集 · 电脑编辑 · 全端同步</div>
+        </div>
+        <div class="card" data-page-node-id="wz3SDQaFTwvyetebSs6e8a">
+          <input class="field-input" id="phone" type="tel" inputmode="numeric" maxlength="11" placeholder="请输入手机号" style="margin-bottom:10px" data-page-node-id="pApBwyRYUHPwC0cP0S5FFz">
+          <div class="code-row" data-page-node-id="hRowIjkU2V1WOrbis5sPWZ">
+            <input class="field-input" id="code" type="tel" inputmode="numeric" maxlength="6" placeholder="验证码" data-page-node-id="sV58ENAyG9NXe7bNaG8sHR">
+            <button class="code-btn" id="code-btn" data-page-node-id="yF9z8fnEF5qvOCFDYsDVfa">获取验证码</button>
+          </div>
+          <button class="btn primary block" id="login-btn" style="margin-top:14px" data-page-node-id="yQRnKM0beuqNzHvm1zEYk3">验证码登录</button>
+          <div class="r-sub" style="text-align:center;margin-top:10px" data-page-node-id="uInAAy3MLh4TngFcxIgsln">演示环境：任意 11 位手机号 + 任意验证码即可登录</div>
+        </div>
+      </div>
+
+      <!-- 已登录：账号态 -->
+      <div id="account-view" style="display:none" data-page-node-id="PuyFt2PU4ek4uAAVE5tHRw">
+        <div class="auth-hero" style="display:flex;align-items:center;gap:14px" data-page-node-id="PkBMxyNd8pIlQoyqdwPjuS">
+          <div class="avatar" data-page-node-id="K2HSnRjYK6PxALahd4z6P2">👤</div>
+          <div data-page-node-id="4sx3c8pnPnbH0o6yqIpC8k">
+            <div class="ah-t" id="acc-phone" data-page-node-id="ytJHwSksJUJGHN3FTFOAEp">—</div>
+            <div class="ah-n" id="acc-name" data-page-node-id="scR2LmyMwcOQl4wo362zyP">空间镜用户</div>
+            <div class="ah-d" data-page-node-id="HScZMad3Auq6oacLrlxL8t">当前档位：<span id="acc-plan" data-page-node-id="gNb3OqyJ94zf2NtEhOL6KI">免费版</span></div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-bottom:14px" data-page-node-id="p3DCxI7bPPUTVkgYFH0XoR">
+          <div style="font-weight:800;margin-bottom:4px" data-page-node-id="hBw8FZczNF7FXe0uJmpAXA">我的空间资产</div>
+          <div class="r-sub" style="margin-bottom:12px" data-page-node-id="n0iraccNgUsGVmelIewXxO">已扫描 <b id="home-count" data-page-node-id="cWE3sEpRyZezpA2zvFxcRq">0</b> 处空间，可在多端访问与编辑</div>
+          <a class="row" href="../homes/index.html" data-page-node-id="xZBuTZpCqIuKbIvNMbjwpp">
+            <div class="r-ico" data-page-node-id="uxFzRiGd5DpAswE9BEdffp">🏠</div>
+            <div class="r-main" data-page-node-id="FYNCELnB984HnX9nxbnzob"><div class="r-title" data-page-node-id="aXcGqBODTQXQeH4xCIAAnR">数字孪生家</div><div class="r-sub" data-page-node-id="sBohTYc0NkKQJStc31FhUm">重命名 · 分享 · 导出 glb/obj</div></div>
+            <div class="r-arrow" data-page-node-id="BFdW2880vqnNpk8perRShl">›</div>
+          </a>
+          <a class="row" href="../membership/index.html" data-page-node-id="ttPNBT5kN6ACvEJQFheJxK">
+            <div class="r-ico" data-page-node-id="e0ugnCGjl9XZsGT0IGI8Vo">⭐</div>
+            <div class="r-main" data-page-node-id="hm2Hcl9k60qVCIliuQzOTP"><div class="r-title" data-page-node-id="X22pQFWsMzw6KkRcvUYXeN">会员与订阅</div><div class="r-sub" data-page-node-id="SYLOsjZ9vUg4TqwzyEtdPw">解锁高级方案 / 家庭版</div></div>
+            <div class="r-arrow" data-page-node-id="6CBTLly18XBNDO0xEBVd5f">›</div>
+          </a>
+        </div>
+
+        <div class="card" style="margin-bottom:14px" data-page-node-id="WTOz1vrD2UXqOP623OnrlI">
+          <div style="font-weight:800;margin-bottom:10px" data-page-node-id="7lXA7e8pCADasB01wIZwly">已绑设备（跨设备同步）</div>
+          <div id="device-list" data-page-node-id="aCFVLqkJn262ymbmbpdsnv"></div>
+        </div>
+
+        <div class="card" style="margin-bottom:14px" data-page-node-id="rbEHIqCnusFJJnvvjE56gV">
+          <div style="font-weight:800;margin-bottom:4px" data-page-node-id="BdWGkpqkqVrcX9fjnhHyNu">探索空间镜</div>
+          <a class="row" href="../mall/index.html" data-page-node-id="kUjDY4QoNo4NkbVzeSJpPO">
+            <div class="r-ico" data-page-node-id="ME4wTFGg5vJdRLR1fowjOV">🏬</div>
+            <div class="r-main" data-page-node-id="FsUSkeYfUIiQo3ZRhVSVcs"><div class="r-title" data-page-node-id="mJNPs3wnTLA6C61RfSimlV">逛街实景孪生</div><div class="r-sub" data-page-node-id="yGQjJk4rxl8trpsj3fqvwf">门店内预览方案商品</div></div>
+            <div class="r-arrow" data-page-node-id="WFqzlIccXLv8OEupyhJ4Pz">›</div>
+          </a>
+          <a class="row" href="../smarthome/index.html" data-page-node-id="hLx8TJZyHjKySFDM4l6dmq">
+            <div class="r-ico" data-page-node-id="Qi9vP1WmQaUeQAWqZFKM0M">🏠</div>
+            <div class="r-main" data-page-node-id="zR8dy6H6fEt9pXIhg05jz6"><div class="r-title" data-page-node-id="ACvwPbA0BAmAACtZdhGaMP">智能家居场景</div><div class="r-sub" data-page-node-id="dZmjaS41jqaGyfv20gmZxW">回家 / 离家 / 睡眠模式</div></div>
+            <div class="r-arrow" data-page-node-id="4hedpSfhEbBAgIo32TrDEx">›</div>
+          </a>
+          <a class="row" href="../community/index.html" data-page-node-id="L2INh6C363Rq40Cz9F5Cl0">
+            <div class="r-ico" data-page-node-id="20mjE8UiBbch3mHLEDBxSt">💡</div>
+            <div class="r-main" data-page-node-id="e6QwL7bgpj2YFC1PA7Ca1K"><div class="r-title" data-page-node-id="nPgBSVt2DUSdm5wUkIJxb5">改造案例社区</div><div class="r-sub" data-page-node-id="dYfCetTwTKd7yXOElqNemO">真实前后对比灵感</div></div>
+            <div class="r-arrow" data-page-node-id="6fsHqy7TSidQD6BealJpdf">›</div>
+          </a>
+          <a class="row" href="../merchant/index.html" data-page-node-id="A4QLyvK6l1YT39vtcmqGnr">
+            <div class="r-ico" data-page-node-id="lt1POicrCuP0cHVVMvdR3u">🏪</div>
+            <div class="r-main" data-page-node-id="i9Tunn7mCVm6CWxvVDp8Di"><div class="r-title" data-page-node-id="HiGGEbbDELy44ZS7Ib8b6f">商家工作台</div><div class="r-sub" data-page-node-id="nHYQJqQ2Zup27VGHtfIbcG">B 端：派单与佣金结算</div></div>
+            <div class="r-arrow" data-page-node-id="2DINU3emMjVsoxP9UKYyw3">›</div>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- 底部 Tab -->
+    <div class="tabbar" data-page-node-id="MF5HtyStpVpH5IdbBnqytO">
+      <a class="tab" href="../prototype/index.html" data-page-node-id="QaLhif4BtlcEGHiPGuA6ug"><span class="ti" data-page-node-id="xlG21dfzV0Rx3YFzES5GPU">🏠</span><span data-page-node-id="Y9BKPcHlaC0m9zsz5QTn5p">原型</span></a>
+      <a class="tab" href="../plan/index.html" data-page-node-id="f53OP2cKwq43AccaMf3v31"><span class="ti" data-page-node-id="HFHWwjfH8wste4sRfNF2wt">📋</span><span data-page-node-id="dqQ7jx5EXZwcHeT03FFDzu">方案</span></a>
+      <a class="tab" href="../cart/index.html" data-page-node-id="9MBgeFd3P3aOBEHyb9UWBa"><span class="ti" data-page-node-id="DQabadHy2JgcwRNPX2LxeF">🛒</span><span data-page-node-id="LyNLHyApk9GhLZ1QvUALlZ">清单</span><span class="tab-badge" data-cart-badge data-page-node-id="YHdpCnHNPWqfBLywITvXCs">0</span></a>
+      <a class="tab active" href="index.html" data-page-node-id="3rqvPl8m7JNbtFPKe3ShXK"><span class="ti" data-page-node-id="tycgeehTO1E4frFYXRQq33">👤</span><span data-page-node-id="cSNujTn44ixcKVmQNYjeH0">我的</span></a>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" data-page-node-id="pdceIeDcnlXAg3MQLxrU7k"></div>
+
+  <script src="../assets/app-data.js"></script>
+  <script>
+    var SM = window.SPACE_MIRROR;
+    SM.loadAccount(); SM.loadHomes();
+    var $ = function (id) { return document.getElementById(id); };
+    function toast(msg) {
+      var t = $('toast'); t.textContent = msg; t.classList.add('show');
+      clearTimeout(t._t); t._t = setTimeout(function () { t.classList.remove('show'); }, 1600);
+    }
+    function render() {
+      var logged = !!SM.ACCOUNT.phone;
+      $('auth-view').style.display = logged ? 'none' : 'block';
+      $('account-view').style.display = logged ? 'block' : 'none';
+      $('logout-btn').style.display = logged ? 'block' : 'none';
+      if (logged) {
+        $('acc-phone').textContent = SM.ACCOUNT.phone;
+        $('acc-name').textContent = SM.ACCOUNT.name;
+        $('acc-plan').textContent = SM.ACCOUNT.plan;
+        $('home-count').textContent = SM.HOMES.length;
+        $('device-list').innerHTML = SM.ACCOUNT.devices.map(function (d) {
+          var icon = d.type === 'phone' ? '📱' : d.type === 'pc' ? '💻' : '📱';
+          return '<div class="device"><div class="d-ico">' + icon + '</div>' +
+            '<div><div class="d-name">' + d.name + '</div><div class="d-meta">' + d.meta + '</div></div>' +
+            '<div class="d-on">' + (d.on ? '已同步' : '离线') + '</div></div>';
+        }).join('');
+      }
+    }
+    // 验证码倒计时
+    var timer = null;
+    $('code-btn').addEventListener('click', function () {
+      var phone = $('phone').value.trim();
+      if (!/^\d{11}$/.test(phone)) { toast('请输入 11 位手机号'); return; }
+      var n = 60, btn = this; btn.disabled = true; btn.style.opacity = .6;
+      btn.textContent = n + 's';
+      timer = setInterval(function () {
+        n--; if (n <= 0) { clearInterval(timer); btn.disabled = false; btn.style.opacity = 1; btn.textContent = '获取验证码'; }
+        else btn.textContent = n + 's';
+      }, 1000);
+      toast('验证码已发送（演示）');
+    });
+    $('login-btn').addEventListener('click', function () {
+      var phone = $('phone').value.trim();
+      if (!/^\d{11}$/.test(phone)) { toast('请输入 11 位手机号'); return; }
+      SM.login(phone); render(); toast('登录成功');
+    });
+    $('logout-btn').addEventListener('click', function () {
+      SM.logout(); render(); toast('已退出');
+    });
+    SM.renderBadges();
+    render();
+  </script>
+</body>
+</html>

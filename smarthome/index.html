@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>空间镜 · 智能家居场景</title>
+  <link rel="stylesheet" href="../assets/app.css">
+</head>
+<body>
+  <div class="wrap">
+    <div class="topbar">
+      <a class="back" href="../prototype/index.html">‹</a>
+      <div>
+        <h1>场景编排</h1>
+        <div class="sub">M4 · 从单设备到模式联动</div>
+      </div>
+    </div>
+
+    <div class="container">
+      <div class="seg" id="scene-seg"></div>
+
+      <div class="card" style="margin-top:14px">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div id="scene-icon" style="font-size:2rem">🏠</div>
+          <div><div id="scene-name" style="font-weight:800;font-size:1.05rem">回家模式</div>
+            <div class="r-sub" id="scene-desc">开门即亮、窗帘打开</div></div>
+        </div>
+        <div id="scene-actions" style="margin-top:12px"></div>
+        <button class="btn primary block" id="run-btn" style="margin-top:6px">▶ 运行该场景</button>
+      </div>
+
+      <div class="card" style="margin-top:14px">
+        <div style="font-weight:800;margin-bottom:10px">设备单控</div>
+        <div id="device-list"></div>
+        <div class="r-sub" style="margin-top:6px">单设备开关是起点，编排成场景后联动价值更直观。</div>
+      </div>
+    </div>
+
+    <div class="tabbar">
+      <a class="tab" href="../prototype/index.html"><span class="ti">🏠</span><span>原型</span></a>
+      <a class="tab" href="../plan/index.html"><span class="ti">📋</span><span>方案</span></a>
+      <a class="tab" href="../cart/index.html"><span class="ti">🛒</span><span>清单</span><span class="tab-badge" data-cart-badge>0</span></a>
+      <a class="tab active" href="../account/index.html"><span class="ti">👤</span><span>我的</span></a>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="../assets/app-data.js"></script>
+  <script>
+    var SM = window.SPACE_MIRROR;
+    var $ = function (id) { return document.getElementById(id); };
+    function toast(m){var t=$('toast');t.textContent=m;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(function(){t.classList.remove('show');},1600);}
+
+    var S = SM.SMART;
+    var active = S.scenes[0].id;
+    // 设备状态
+    var devState = {};
+    S.devices.forEach(function (d) { devState[d] = false; });
+
+    $('scene-seg').innerHTML = S.scenes.map(function (sc) {
+      return '<button data-sid="' + sc.id + '" class="' + (sc.id === active ? 'active' : '') + '">' + sc.icon + ' ' + sc.name + '</button>';
+    }).join('');
+    $('scene-seg').querySelectorAll('button').forEach(function (b) {
+      b.addEventListener('click', function () {
+        active = b.getAttribute('data-sid');
+        $('scene-seg').querySelectorAll('button').forEach(function (x) { x.classList.remove('active'); });
+        b.classList.add('active'); renderScene();
+      });
+    });
+
+    function renderScene() {
+      var sc = S.scenes.filter(function (x) { return x.id === active; })[0];
+      $('scene-icon').textContent = sc.icon;
+      $('scene-name').textContent = sc.name;
+      $('scene-desc').textContent = sc.desc;
+      $('scene-actions').innerHTML = sc.actions.map(function (a) {
+        return '<div style="display:flex;justify-content:space-between;padding:8px 0;border-top:1px dashed var(--border);font-size:.88rem">' +
+          '<span>⚙ ' + a.d + '</span><span style="font-weight:700;color:var(--accent)">' + a.s + '</span></div>';
+      }).join('');
+    }
+
+    $('device-list').innerHTML = S.devices.map(function (d, i) {
+      return '<div class="switch"><span>' + d + '</span><div class="sw" data-dev="' + i + '"></div></div>';
+    }).join('');
+    $('device-list').querySelectorAll('.sw').forEach(function (sw) {
+      sw.addEventListener('click', function () {
+        var i = +sw.getAttribute('data-dev');
+        devState[S.devices[i]] = !devState[S.devices[i]];
+        sw.classList.toggle('on', devState[S.devices[i]]);
+        toast(S.devices[i] + (devState[S.devices[i]] ? ' 已开' : ' 已关'));
+      });
+    });
+
+    $('run-btn').addEventListener('click', function () {
+      var sc = S.scenes.filter(function (x) { return x.id === active; })[0];
+      sc.actions.forEach(function (a) { devState[a.d] = (a.s !== '关' && a.s !== '布防'); });
+      $('device-list').querySelectorAll('.sw').forEach(function (sw, i) {
+        sw.classList.toggle('on', devState[S.devices[i]]);
+      });
+      toast('已运行「' + sc.name + '」' + sc.actions.length + ' 项联动 ✅');
+    });
+
+    SM.renderBadges();
+    renderScene();
+  </script>
+</body>
+</html>

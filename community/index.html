@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>空间镜 · 改造案例社区</title>
+  <link rel="stylesheet" href="../assets/app.css">
+</head>
+<body>
+  <div class="wrap">
+    <div class="topbar">
+      <a class="back" href="../prototype/index.html">‹</a>
+      <div>
+        <h1>改造案例社区</h1>
+        <div class="sub">真实前后对比 · 灵感与背书</div>
+      </div>
+    </div>
+
+    <div class="container">
+      <div class="card" style="margin-bottom:14px;background:linear-gradient(135deg,#f59e0b,#ef4444);color:#fff;border:none">
+        <div style="font-weight:800;font-size:1rem">看看大家怎么改造的</div>
+        <div style="font-size:.8rem;opacity:.95;margin-top:4px">每个案例都来自一次空间镜诊断与复扫，分数可验证。</div>
+      </div>
+      <div id="case-list"></div>
+      <a class="btn primary block" href="../prototype/index.html" style="margin-top:8px">📷 我也去诊断我的家</a>
+    </div>
+
+    <div class="tabbar">
+      <a class="tab" href="../prototype/index.html"><span class="ti">🏠</span><span>原型</span></a>
+      <a class="tab" href="../plan/index.html"><span class="ti">📋</span><span>方案</span></a>
+      <a class="tab" href="../cart/index.html"><span class="ti">🛒</span><span>清单</span><span class="tab-badge" data-cart-badge>0</span></a>
+      <a class="tab active" href="../account/index.html"><span class="ti">👤</span><span>我的</span></a>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="../assets/app-data.js"></script>
+  <script>
+    var SM = window.SPACE_MIRROR;
+    var $ = function (id) { return document.getElementById(id); };
+    function toast(m){var t=$('toast');t.textContent=m;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(function(){t.classList.remove('show');},1600);}
+
+    var LIKE_KEY = 'spacemirror_likes_v1';
+    var liked = {};
+    try { liked = JSON.parse(localStorage.getItem(LIKE_KEY)) || {}; } catch (e) {}
+
+    function render() {
+      $('case-list').innerHTML = SM.COMMUNITY.map(function (c) {
+        var gain = c.after - c.before;
+        return '<div class="card" style="margin-bottom:12px">' +
+          '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">' +
+            '<div style="width:34px;height:34px;border-radius:50%;background:hsl(' + c.hue + ',65%,90%);color:hsl(' + c.hue + ',65%,40%);display:grid;place-items:center;font-weight:800">@</div>' +
+            '<div style="flex:1"><div style="font-weight:800;font-size:.9rem">' + c.user + '</div>' +
+            '<div class="r-sub">' + c.home + ' · ' + c.dim + '改造</div></div>' +
+            '<span class="tag green">+' + gain + ' 分</span>' +
+          '</div>' +
+          '<div style="display:flex;gap:8px;align-items:center;background:#f8fafc;border-radius:12px;padding:10px;margin-bottom:8px">' +
+            '<div style="flex:1;text-align:center"><div style="font-size:.7rem;color:var(--muted)">改造前</div><div style="font-size:1.3rem;font-weight:800;color:#94a3b8">' + c.before + '</div></div>' +
+            '<div style="color:var(--accent);font-weight:800">→</div>' +
+            '<div style="flex:1;text-align:center"><div style="font-size:.7rem;color:var(--muted)">改造后</div><div style="font-size:1.3rem;font-weight:800;color:var(--green)">' + c.after + '</div></div>' +
+          '</div>' +
+          '<div style="font-size:.86rem;margin-bottom:8px">' + c.text + '</div>' +
+          '<button class="btn ' + (liked[c.id] ? 'added' : 'ghost') + '" data-cid="' + c.id + '" style="width:auto;padding:8px 14px">' +
+            (liked[c.id] ? '❤️ 已赞 ' : '🤍 点赞 ') + c.likes + '</button>' +
+          '</div>';
+      }).join('');
+
+      $('case-list').querySelectorAll('[data-cid]').forEach(function (b) {
+        b.addEventListener('click', function () {
+          var id = b.getAttribute('data-cid');
+          var c = SM.COMMUNITY.filter(function (x) { return x.id === id; })[0];
+          if (liked[id]) { liked[id] = false; c.likes--; } else { liked[id] = true; c.likes++; toast('感谢点赞 ❤️'); }
+          try { localStorage.setItem(LIKE_KEY, JSON.stringify(liked)); } catch (e) {}
+          render();
+        });
+      });
+    }
+
+    SM.renderBadges();
+    render();
+  </script>
+</body>
+</html>

@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>空间镜 · 购物清单</title>
+  <style>
+    :root{
+      --bg:#f4f6fb; --card:#ffffff; --text:#0f172a; --muted:#64748b;
+      --accent:#3b82f6; --orange:#f59e0b; --green:#10b981; --red:#ef4444;
+      --border:#e6eaf2; --radius:16px; --shadow:0 6px 24px rgba(15,23,42,.06);
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{
+      font-family:system-ui,-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+      background:var(--bg);color:var(--text);line-height:1.5;padding-bottom:140px;
+    }
+    .wrap{max-width:480px;margin:0 auto;min-height:100vh}
+    a{color:inherit;text-decoration:none}
+
+    .topbar{
+      position:sticky;top:0;z-index:30;background:rgba(244,246,251,.92);
+      backdrop-filter:blur(12px);border-bottom:1px solid var(--border);
+      padding:12px 16px;display:flex;align-items:center;gap:10px;
+    }
+    .topbar .back{font-size:1.4rem;color:var(--muted);width:28px}
+    .topbar h1{font-size:1.05rem;font-weight:800}
+    .topbar .sub{font-size:.72rem;color:var(--muted)}
+
+    /* 汇总条 */
+    .summary{
+      margin:14px 16px;background:linear-gradient(135deg,#1e293b,#334155);color:#fff;
+      border-radius:18px;padding:16px;box-shadow:0 12px 30px rgba(30,41,59,.25);
+    }
+    .summary .s-row{display:flex;justify-content:space-between;align-items:baseline}
+    .summary .s-count{font-size:.85rem;opacity:.85}
+    .summary .s-total{font-size:1.5rem;font-weight:800}
+    .summary .s-total small{font-size:.8rem;font-weight:600;opacity:.8}
+    .summary .s-disc{font-size:.78rem;color:#86efac;margin-top:4px}
+    .summary .s-line{height:1px;background:rgba(255,255,255,.15);margin:10px 0}
+
+    .container{padding:0 16px 8px}
+
+    /* 分组 */
+    .group{margin-bottom:18px}
+    .group-head{display:flex;align-items:center;gap:8px;margin:0 0 8px 2px}
+    .group-head .g-dot{width:8px;height:8px;border-radius:50%;background:var(--accent)}
+    .group-head .g-name{font-size:.95rem;font-weight:800}
+    .group-head .g-sub{font-size:.72rem;color:var(--muted)}
+
+    /* 商品卡 */
+    .item{
+      background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+      padding:12px;margin-bottom:10px;box-shadow:var(--shadow);
+      display:flex;gap:12px;align-items:center;
+    }
+    .thumb{
+      width:56px;height:56px;border-radius:14px;flex:0 0 56px;display:grid;place-items:center;
+      font-size:1.7rem;color:#fff;
+    }
+    .item-main{flex:1;min-width:0}
+    .item-name{font-size:.9rem;font-weight:700;display:flex;align-items:center;gap:6px}
+    .req{font-size:.62rem;font-weight:700;padding:1px 6px;border-radius:6px}
+    .req.must{background:#fee2e2;color:var(--red)}
+    .req.opt{background:#e0f2fe;color:#0369a1}
+    .item-spec{font-size:.72rem;color:var(--muted);margin-top:1px}
+    .item-merchant{font-size:.7rem;color:#475569;margin-top:3px}
+    .item-merchant b{color:var(--accent)}
+    .item-right{display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex:0 0 auto}
+    .item-price{font-size:.95rem;font-weight:800}
+    .item-price small{font-size:.68rem;color:var(--muted);font-weight:500}
+    .stepper{display:flex;align-items:center;gap:0;border:1px solid var(--border);border-radius:999px;overflow:hidden}
+    .stepper button{width:26px;height:26px;border:none;background:#f1f5f9;font-size:1rem;cursor:pointer;color:#334155}
+    .stepper .qty{min-width:28px;text-align:center;font-size:.85rem;font-weight:700}
+    .item-sub{font-size:.72rem;color:var(--muted)}
+
+    /* 空状态 */
+    .empty{text-align:center;padding:60px 24px}
+    .empty .e-ico{font-size:3.4rem;margin-bottom:12px;opacity:.5}
+    .empty .e-title{font-size:1.05rem;font-weight:800;margin-bottom:6px}
+    .empty .e-desc{font-size:.85rem;color:var(--muted);margin-bottom:18px}
+    .empty .e-btn{display:inline-flex;background:var(--accent);color:#fff;padding:11px 22px;border-radius:999px;font-weight:700;font-size:.88rem;box-shadow:0 6px 16px rgba(59,130,246,.3)}
+
+    /* 底部 CTA + Tab */
+    .cta-bar{
+      position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;
+      background:#fff;border-top:1px solid var(--border);padding:10px 16px calc(10px + env(safe-area-inset-bottom));
+      z-index:40;box-shadow:0 -4px 20px rgba(15,23,42,.06);
+    }
+    .cta-total{font-size:.78rem;color:var(--muted);margin-bottom:6px;text-align:center}
+    .cta-total b{color:var(--text);font-size:.95rem}
+    .cta-btn{
+      width:100%;border:none;background:linear-gradient(135deg,var(--accent),var(--teal));
+      color:#fff;font-weight:800;font-size:1rem;padding:13px;border-radius:14px;cursor:pointer;
+      box-shadow:0 8px 22px rgba(59,130,246,.35);
+    }
+    .cta-btn:disabled{background:#cbd5e1;box-shadow:none;cursor:not-allowed}
+    .tabbar{
+      position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;
+      display:none; /* 与 cta-bar 合并，仅在空状态时不显示 */
+    }
+    .tabbar.show{display:flex;background:#fff;border-top:1px solid var(--border);z-index:41}
+    .tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:9px 0 8px;font-size:.72rem;color:var(--muted);position:relative;cursor:pointer}
+    .tab.active{color:var(--accent);font-weight:700}
+    .tab .ti{font-size:1.15rem}
+    .tab-badge{position:absolute;top:3px;right:calc(50% - 26px);min-width:18px;height:18px;padding:0 5px;background:var(--orange);color:#fff;font-size:.65rem;font-weight:700;border-radius:999px;display:none;align-items:center;justify-content:center;border:2px solid #fff}
+
+    .toast{position:fixed;left:50%;bottom:160px;transform:translateX(-50%) translateY(20px);background:#0f172a;color:#fff;padding:10px 18px;border-radius:999px;font-size:.85rem;opacity:0;pointer-events:none;transition:.25s;z-index:120;box-shadow:0 8px 24px rgba(0,0,0,.3)}
+    .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="topbar">
+      <a class="back" href="../plan/index.html">‹</a>
+      <div>
+        <h1>购物清单</h1>
+        <div class="sub">空间镜 · 改造方案配套采购</div>
+      </div>
+    </div>
+
+    <div id="app"></div>
+  </div>
+
+  <!-- 底部 CTA -->
+  <div class="cta-bar" id="cta-bar">
+    <div class="cta-total" id="cta-total">清单为空</div>
+    <button class="cta-btn" id="cta-btn" disabled>去比价 · 提交预约</button>
+  </div>
+
+  <!-- 空状态时显示的 Tab（方案入口） -->
+  <div class="tabbar" id="empty-tab">
+    <a class="tab" href="../prototype/index.html">
+      <span class="ti">🏠</span><span>原型</span>
+    </a>
+    <a class="tab" href="../plan/index.html">
+      <span class="ti">📋</span><span>方案</span>
+    </a>
+    <a class="tab active" href="index.html">
+      <span class="ti">🛒</span><span>清单</span>
+      <span class="tab-badge" data-cart-badge>0</span>
+    </a>
+    <a class="tab" href="../account/index.html">
+      <span class="ti">👤</span><span>我的</span>
+    </a>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="../assets/app-data.js"></script>
+  <script>
+    var SM = window.SPACE_MIRROR;
+    var app = document.getElementById('app');
+    var ctaBar = document.getElementById('cta-bar');
+    var emptyTab = document.getElementById('empty-tab');
+
+    function thumbColor(hue){ return 'hsl('+hue+',70%,55%)'; }
+
+    function render(){
+      var cart = SM.getCart();
+      SM.renderBadges();
+      if(!cart.length){
+        ctaBar.style.display='none';
+        emptyTab.classList.add('show');
+        app.innerHTML =
+          '<div class="empty">'+
+            '<div class="e-ico">🛒</div>'+
+            '<div class="e-title">清单还是空的</div>'+
+            '<div class="e-desc">还没有清单，去诊断页看看改造方案</div>'+
+            '<a class="e-btn" href="../prototype/index.html">去诊断页看看改造方案</a>'+
+          '</div>';
+        return;
+      }
+      ctaBar.style.display='block';
+      emptyTab.classList.remove('show');
+
+      // 按改造项分组（保持方案顺序）
+      var groups = {};
+      var order = [];
+      cart.forEach(function(l){
+        if(!groups[l.planId]){ groups[l.planId]={name:l.group,items:[]}; order.push(l.planId); }
+        groups[l.planId].items.push(l);
+      });
+
+      var total = SM.cartTotal();
+      var disc = SM.cartDiscount(total);
+      var count = SM.cartCount();
+
+      var html = '<div class="summary">'+
+        '<div class="s-row"><span class="s-count">共 '+count+' 件商品 · 分 '+order.length+' 个改造项</span>'+
+        '<span class="s-total"><small>合计 ¥</small>'+total.toLocaleString()+'</span></div>'+
+        '<div class="s-line"></div>'+
+        '<div class="s-row"><span class="s-disc">套餐优惠 -¥'+disc.toLocaleString()+'</span>'+
+        '<span class="s-total" style="font-size:1.15rem"><small>优惠后 ¥</small>'+(total-disc).toLocaleString()+'</span></div>'+
+      '</div><div class="container">';
+
+      order.forEach(function(gid){
+        var g = groups[gid];
+        html += '<div class="group"><div class="group-head"><span class="g-dot"></span>'+
+          '<span class="g-name">'+g.name+'</span>'+
+          '<span class="g-sub">· '+g.items.length+' 件</span></div>';
+        g.items.forEach(function(it){
+          html +=
+            '<div class="item">'+
+              '<div class="thumb" style="background:'+thumbColor(it.hue)+'">'+it.icon+'</div>'+
+              '<div class="item-main">'+
+                '<div class="item-name">'+it.name+
+                  '<span class="req '+(it.required?'must':'opt')+'">'+(it.required?'必买':'可选')+'</span></div>'+
+                '<div class="item-spec">'+it.spec+'</div>'+
+                '<div class="item-merchant">来源：<b>'+it.merchant+'</b></div>'+
+              '</div>'+
+              '<div class="item-right">'+
+                '<div class="item-price">¥'+it.price.toLocaleString()+'<small> /件</small></div>'+
+                '<div class="stepper">'+
+                  '<button data-dec="'+it.pid+'">−</button>'+
+                  '<span class="qty" id="q-'+it.pid+'">'+it.qty+'</span>'+
+                  '<button data-inc="'+it.pid+'">+</button>'+
+                '</div>'+
+                '<div class="item-sub">小计 ¥'+(it.price*it.qty).toLocaleString()+'</div>'+
+              '</div>'+
+            '</div>';
+        });
+        html += '</div>';
+      });
+      html += '</div>';
+      app.innerHTML = html;
+
+      // 步进器
+      app.querySelectorAll('[data-inc]').forEach(function(b){
+        b.onclick=function(){ SM.changeQty(b.getAttribute('data-inc'),1); render(); };
+      });
+      app.querySelectorAll('[data-dec]').forEach(function(b){
+        b.onclick=function(){ SM.changeQty(b.getAttribute('data-dec'),-1); render(); };
+      });
+
+      // CTA
+      document.getElementById('cta-total').innerHTML =
+        '优惠后合计 <b>¥'+(total-disc).toLocaleString()+'</b> · '+count+' 件';
+      document.getElementById('cta-btn').disabled=false;
+      document.getElementById('cta-btn').onclick=function(){
+        location.href='../booking/index.html';
+      };
+    }
+
+    var toastTimer;
+    function showToast(msg){
+      var t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show');
+      clearTimeout(toastTimer); toastTimer=setTimeout(function(){t.classList.remove('show');},2000);
+    }
+
+    render();
+  </script>
+</body>
+</html>

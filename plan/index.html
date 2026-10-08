@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-page-node-id="jJrLT1rZr91OaRoZ4dEdmC">
+<head data-page-node-id="9GLmxwh7xX2Bho2qUa5mBn">
+  <meta charset="UTF-8" data-page-node-id="ln5mSIziIpx7ggIs1rRIux">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" data-page-node-id="ivVQazUdMGKMjr424OdaRC">
+  <title>空间镜 · 改造方案</title>
+  <style>
+    :root{
+      --bg:#f4f6fb; --card:#ffffff; --text:#0f172a; --muted:#64748b;
+      --accent:#3b82f6; --teal:#22d3ee; --orange:#f59e0b; --green:#10b981;
+      --purple:#8b5cf6; --border:#e6eaf2; --radius:16px; --shadow:0 6px 24px rgba(15,23,42,.06);
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{
+      font-family:system-ui,-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+      background:var(--bg);color:var(--text);line-height:1.5;
+      padding-bottom:72px;
+    }
+    .wrap{max-width:480px;margin:0 auto;background:var(--bg);min-height:100vh}
+    a{color:inherit;text-decoration:none}
+
+    .topbar{
+      position:sticky;top:0;z-index:30;background:rgba(244,246,251,.92);
+      backdrop-filter:blur(12px);border-bottom:1px solid var(--border);
+      padding:12px 16px;display:flex;align-items:center;gap:10px;
+    }
+    .topbar .back{font-size:1.4rem;color:var(--muted);width:28px}
+    .topbar h1{font-size:1.05rem;font-weight:800}
+    .topbar .sub{font-size:.72rem;color:var(--muted)}
+
+    .container{padding:14px 16px 16px}
+
+    /* 概览卡 */
+    .overview{
+      background:linear-gradient(135deg,#3b82f6,#22d3ee);color:#fff;border-radius:20px;
+      padding:18px;box-shadow:0 12px 30px rgba(59,130,246,.25);margin-bottom:16px;
+    }
+    .overview .o-score{display:flex;align-items:baseline;gap:8px}
+    .overview .o-score b{font-size:2.6rem;font-weight:800;line-height:1}
+    .overview .o-score span{font-size:.85rem;opacity:.9}
+    .overview .o-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+    .overview .o-cell{background:rgba(255,255,255,.16);border-radius:12px;padding:10px 12px}
+    .overview .o-cell .k{font-size:.72rem;opacity:.9}
+    .overview .o-cell .v{font-size:1.05rem;font-weight:700;margin-top:2px}
+    .o-pills{display:flex;gap:6px;margin-top:4px}
+    .o-pill{font-size:.7rem;padding:1px 7px;border-radius:999px;background:rgba(255,255,255,.22)}
+
+    /* 筛选 */
+    .filter-block{margin-bottom:14px}
+    .filter-label{font-size:.75rem;color:var(--muted);margin:0 0 6px 2px;font-weight:600}
+    .chips{display:flex;flex-wrap:wrap;gap:8px}
+    .chip{
+      font-size:.8rem;padding:6px 13px;border-radius:999px;background:var(--card);
+      border:1px solid var(--border);color:var(--muted);cursor:pointer;user-select:none;
+      transition:.15s;
+    }
+    .chip.active{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
+
+    /* 方案卡 */
+    .plan{
+      background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+      padding:14px;margin-bottom:14px;box-shadow:var(--shadow);
+    }
+    .plan-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;gap:8px}
+    .plan-title{font-size:1rem;font-weight:800}
+    .plan-tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:3px}
+    .tag{font-size:.68rem;padding:1px 8px;border-radius:999px;background:#eef2ff;color:#4f46e5}
+    .tag.dim{background:#fff7ed;color:#c2410c}
+    .prio{font-size:.7rem;font-weight:700;padding:3px 9px;border-radius:999px;white-space:nowrap}
+    .prio.high{background:#fee2e2;color:#dc2626}
+    .prio.medium{background:#fef3c7;color:#d97706}
+    .prio.low{background:#dcfce7;color:#16a34a}
+
+    .field{display:flex;gap:9px;padding:7px 0;border-top:1px dashed var(--border)}
+    .field:first-of-type{border-top:none}
+    .field .ico{font-size:.95rem;flex:0 0 18px;text-align:center;margin-top:1px}
+    .field .fk{font-size:.7rem;color:var(--muted);font-weight:600;min-width:56px}
+    .field .fv{font-size:.85rem;flex:1}
+    .field .fv .score{color:var(--orange);font-weight:700}
+    .field .fv .up{color:var(--green);font-weight:700}
+    .field.effect .fv{color:#0f172a}
+
+    .plan-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+    .btn{
+      border:none;border-radius:12px;padding:11px 10px;font-weight:700;font-size:.85rem;
+      cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;transition:.15s;
+    }
+    .btn.ghost{background:#f1f5f9;color:#334155}
+    .btn.primary{background:var(--accent);color:#fff;box-shadow:0 6px 16px rgba(59,130,246,.3)}
+    .btn.added{background:#ecfdf5;color:var(--green);cursor:default}
+    .btn:active{transform:scale(.97)}
+
+    /* 对比弹层 */
+    .modal-mask{
+      position:fixed;inset:0;background:rgba(15,23,42,.6);backdrop-filter:blur(4px);
+      z-index:100;display:none;align-items:center;justify-content:center;padding:18px;
+    }
+    .modal-mask.show{display:flex}
+    .modal{
+      background:#fff;border-radius:20px;width:100%;max-width:420px;overflow:hidden;
+      box-shadow:0 20px 60px rgba(0,0,0,.3);
+    }
+    .modal-head{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-bottom:1px solid var(--border)}
+    .modal-head h3{font-size:1rem;font-weight:800}
+    .modal-close{font-size:1.4rem;color:var(--muted);cursor:pointer;line-height:1}
+    .cmp-stage{position:relative;height:300px;overflow:hidden;background:#0b1221;user-select:none}
+    .cmp-scene{position:absolute;inset:0;overflow:hidden}
+    .cmp-scene .room{position:absolute;inset:0}
+    .cmp-after{filter:brightness(1.12) saturate(1.1)}
+    .cmp-before{filter:brightness(.5) saturate(.85);clip-path:inset(0 calc(100% - var(--pos,50%)) 0 0)}
+    .room-wall{position:absolute;top:0;left:0;right:0;height:62%;background:linear-gradient(180deg,#cdd9ec,#aebfd8)}
+    .room-floor{position:absolute;bottom:0;left:0;right:0;height:38%;background:linear-gradient(180deg,#d8c4a6,#c2a980)}
+    .room-window{position:absolute;top:18%;left:14%;width:34%;height:46%;background:linear-gradient(180deg,#bfe8ff,#7fc9ff);border:5px solid #fff;border-radius:4px;box-shadow:0 0 30px rgba(150,220,255,.6)}
+    .cmp-before .room-window{background:linear-gradient(180deg,#7c93ad,#5d708e);}
+    .room-blocker{position:absolute;top:20%;left:14%;width:34%;height:46%;background:rgba(60,70,90,.82);border:5px solid #5a6678;border-radius:4px}
+    .room-sofa{position:absolute;bottom:14%;left:54%;width:34%;height:22%;background:#5b6b86;border-radius:8px}
+    .room-table{position:absolute;bottom:16%;left:20%;width:22%;height:14%;background:#8a7355;border-radius:6px}
+    .sun{position:absolute;top:8px;right:8px;font-size:1.4rem}
+    .room-tag{position:absolute;top:12px;left:50%;transform:translateX(-50%);padding:5px 12px;border-radius:999px;font-size:.74rem;font-weight:700;white-space:nowrap}
+    .cmp-before .room-tag{background:rgba(220,38,38,.9);color:#fff}
+    .cmp-after .room-tag{background:rgba(16,185,129,.92);color:#fff}
+    .cmp-score{position:absolute;bottom:12px;right:12px;background:rgba(15,23,42,.78);color:#fff;font-size:.78rem;font-weight:700;padding:5px 10px;border-radius:10px}
+    .cmp-divider{position:absolute;top:0;bottom:0;width:3px;background:#fff;left:var(--pos,50%);transform:translateX(-50%);box-shadow:0 0 12px rgba(0,0,0,.5);z-index:5}
+    .cmp-divider::after{content:"⇄";position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:30px;height:30px;background:#fff;border-radius:50%;display:grid;place-items:center;font-size:.9rem;color:var(--accent);box-shadow:0 2px 8px rgba(0,0,0,.3)}
+    .cmp-foot{padding:14px 16px}
+    .cmp-labels{display:flex;justify-content:space-between;font-size:.78rem;color:var(--muted);margin-bottom:8px}
+    .cmp-slider{width:100%;accent-color:var(--accent)}
+    .cmp-toggle{margin-top:10px;width:100%;border:1px solid var(--border);background:#f8fafc;border-radius:10px;padding:9px;font-weight:600;font-size:.82rem;cursor:pointer;color:#334155}
+
+    /* 底部 Tab */
+    .tabbar{
+      position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;
+      background:#fff;border-top:1px solid var(--border);display:flex;z-index:40;
+      box-shadow:0 -4px 20px rgba(15,23,42,.06);
+    }
+    .tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:9px 0 8px;
+      font-size:.72rem;color:var(--muted);position:relative;cursor:pointer}
+    .tab.active{color:var(--accent);font-weight:700}
+    .tab .ti{font-size:1.15rem}
+    .tab-badge{
+      position:absolute;top:3px;right:calc(50% - 26px);min-width:18px;height:18px;padding:0 5px;
+      background:var(--orange);color:#fff;font-size:.65rem;font-weight:700;border-radius:999px;
+      display:none;align-items:center;justify-content:center;border:2px solid #fff;
+    }
+
+    /* toast */
+    .toast{
+      position:fixed;left:50%;bottom:84px;transform:translateX(-50%) translateY(20px);
+      background:#0f172a;color:#fff;padding:10px 18px;border-radius:999px;font-size:.85rem;
+      opacity:0;pointer-events:none;transition:.25s;z-index:120;box-shadow:0 8px 24px rgba(0,0,0,.3);
+    }
+    .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  </style>
+</head>
+<body data-page-node-id="iWNeyEczbqzDfGSGVFlHCY">
+  <div class="wrap" data-page-node-id="in9EyifUnpwYQ7HXqxoNiG">
+    <div class="topbar" data-page-node-id="Nb4s7713NAGhF00Gasz0RO">
+      <a class="back" href="../prototype/index.html" data-page-node-id="pYzNrny3D7BV0tzjI4LMwh">‹</a>
+      <div data-page-node-id="wsGbU8F77XOPQzK4gwiO0Z">
+        <h1 data-page-node-id="2ySmc72PLqY7YxOIytAxCr">改造方案</h1>
+        <div class="sub" id="sub-line" data-page-node-id="Hq1LKHwPmVE7aVSxDsdW52">诊断于 2026-10-07 · 89㎡ · 3 室 2 厅</div>
+      </div>
+    </div>
+
+    <div class="container" data-page-node-id="lpAFsipqcWuNxJBG9GUtAU">
+      <!-- 概览卡 -->
+      <div class="overview" data-page-node-id="FKvWl98xzd4lrXC6ljaCNk">
+        <div class="o-score" data-page-node-id="b7oWHuXf7FUi4XryHs4kuH">
+          <b id="ov-score" data-page-node-id="oSpBJAlHqFQebjXkd39nvV">72</b><span data-page-node-id="w0TWUYfNXLAwjnCyyg5jCG">分 · 综合空间健康度</span>
+        </div>
+        <div class="o-grid" data-page-node-id="ly4xOmGX2k2eAG3sUU04M5">
+          <div class="o-cell" data-page-node-id="6a9rZFJfqO0SxHsyoLzNhe">
+            <div class="k" data-page-node-id="5HiEiW3hCdig3f3ICGezXv">改造项</div>
+            <div class="v" data-page-node-id="8ThBoAVURgUDR0BxV8Qjmd"><span id="ov-count" data-page-node-id="pNjnnFSGrAL7UWXzraUwCE">6</span> 项
+              <div class="o-pills" id="ov-prio" data-page-node-id="CS5FxqZEZFkoPWGeHz2cKc"></div>
+            </div>
+          </div>
+          <div class="o-cell" data-page-node-id="NxXT2xLJPFtCWYDCbrvc3I">
+            <div class="k" data-page-node-id="tEvd5h4Td4ZiXs59Hby3Bg">总预算区间</div>
+            <div class="v" id="ov-budget" data-page-node-id="Hx6PeuNFcd2vqAvFu81dgC">¥12,000–20,100</div>
+          </div>
+          <div class="o-cell" data-page-node-id="pO3fJrQZCiHwF7OoMRRaqR">
+            <div class="k" data-page-node-id="tpERDZWD5yHZ1F1e2EWyly">预计工期</div>
+            <div class="v" id="ov-duration" data-page-node-id="co1fPtDQnmv7zxzLYJryjZ">约 5–6 天</div>
+          </div>
+          <div class="o-cell" data-page-node-id="Pz3kEl6zJblDPyB9QUzfxT">
+            <div class="k" data-page-node-id="9H4mEtGaBPSjCBJJ6DfYx7">最长短板</div>
+            <div class="v" id="ov-weak" data-page-node-id="mRUN2Hf3IMpUK7GuD5whif">收纳 45 分</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 筛选 -->
+      <div class="filter-block" data-page-node-id="gqpKuXsVaGFiHYzjj2wCeo">
+        <div class="filter-label" data-page-node-id="b2PNOzdWJbv0HyylpYqgnL">按房间</div>
+        <div class="chips" id="filter-room" data-page-node-id="s6nSNRvSDvOnKfxKlMfjxU"></div>
+      </div>
+      <div class="filter-block" data-page-node-id="T4pO01lydAV21Bf3Tfx51U">
+        <div class="filter-label" data-page-node-id="NDeDcoc2Vvu4BMS02169XA">按维度</div>
+        <div class="chips" id="filter-dim" data-page-node-id="mMHUYbQbeSRd9URdHWZ5Eo"></div>
+      </div>
+
+      <!-- 方案列表 -->
+      <div id="plan-list" data-page-node-id="jt0Lvv7qxvuHewwACsouUH"></div>
+    </div>
+  </div>
+
+  <!-- 对比弹层 -->
+  <div class="modal-mask" id="modal" data-page-node-id="a81p2vvdjsp9coNwMnTMG6">
+    <div class="modal" data-page-node-id="dx5K5GuzLSSYZLaDGiMeD5">
+      <div class="modal-head" data-page-node-id="F79kFGBmq0NNk5m90JsxvJ">
+        <h3 id="m-title" data-page-node-id="fQTKnwxQB4ooOEukEgbd8y">效果对比</h3>
+        <div class="modal-close" id="m-close" data-page-node-id="oHGguDFX2cODMglraulPfd">×</div>
+      </div>
+      <div class="cmp-stage" id="cmp-stage" data-page-node-id="PBgVWS1VBWV67ouDw491Gl"></div>
+      <div class="cmp-foot" data-page-node-id="IBdnbQB4bDdZcG7wk5qMnt">
+        <div class="cmp-labels" data-page-node-id="09VWn5ffmD43AerKkDnEdH"><span data-page-node-id="2nqvsC5SGJWJSN3LbGwNON">改造前</span><span data-page-node-id="HUuwNM1M0fRQA0Q3pZJEQA">改造后</span></div>
+        <input type="range" min="0" max="100" value="50" class="cmp-slider" id="cmp-slider" data-page-node-id="5N9X2mTAQvFReF0Ros8DjG">
+        <button class="cmp-toggle" id="cmp-toggle" data-page-node-id="L3w2O3qMilYH1IkDhl8NCS">⇄ 一键切换前后</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" data-page-node-id="zIM0FD8Atq80l7g0LCuChE"></div>
+
+  <!-- 底部 Tab -->
+  <div class="tabbar" data-page-node-id="iyElePMVruclf6t7z1q8ep">
+    <a class="tab" href="../prototype/index.html" data-page-node-id="eP1aBc2dEf3gHi4j">
+      <span class="ti" data-page-node-id="kL5mNo6pQr7sTu8v">🏠</span><span data-page-node-id="wX9yZa1bCc2dEe3f">原型</span>
+    </a>
+    <a class="tab active" href="index.html" data-page-node-id="ATWJA62GDpRyk5ueuSKLzi">
+      <span class="ti" data-page-node-id="djHVA9cvHTBBSFpXVCPByR">📋</span><span data-page-node-id="GbMKPbyzcEHb6av4FOulRE">方案</span>
+    </a>
+    <a class="tab" href="../cart/index.html" data-page-node-id="KLGv05HeFl8pcYVfxYGSD3">
+      <span class="ti" data-page-node-id="X5iTWGBWsE2cbbgz7YzCKd">🛒</span><span data-page-node-id="h0aLZq4SxmRydtOoX6RKXZ">清单</span>
+      <span class="tab-badge" data-cart-badge data-page-node-id="xDdfaCQJZ0jFQUKbWJl7Bp">0</span>
+    </a>
+    <a class="tab" href="../account/index.html" data-page-node-id="fF4gGh5iIj6kLl7m">
+      <span class="ti" data-page-node-id="nO8pQq9rRr0sSs1t">👤</span><span data-page-node-id="uV2wXx3yYy4zZz5a">我的</span>
+    </a>
+  </div>
+
+  <script src="../assets/app-data.js"></script>
+  <script>
+    var SM = window.SPACE_MIRROR;
+    var D = SM.DIAGNOSIS;
+    var state = { room: '全部', dim: '全部' };
+
+    // —— 概览卡（数据驱动）——
+    (function fillOverview(){
+      document.getElementById('ov-score').textContent = D.totalScore;
+      var counts = { high:0, medium:0, low:0 };
+      var bMin=0, bMax=0, weak=null;
+      D.plans.forEach(function(p){
+        counts[p.priority]++;
+        bMin += p.budgetMin; bMax += p.budgetMax;
+      });
+      document.getElementById('ov-count').textContent = D.plans.length;
+      var pills = document.getElementById('ov-prio');
+      ['high','medium','low'].forEach(function(k){
+        var s=document.createElement('span'); s.className='o-pill';
+        s.textContent = SM.PRIORITY_LABEL[k]+' '+counts[k]; pills.appendChild(s);
+      });
+      document.getElementById('ov-budget').textContent =
+        '¥'+bMin.toLocaleString()+'–'+bMax.toLocaleString();
+      // 预计工期（顺序求和，并行可缩短）
+      var days = D.plans.reduce(function(s,p){ return s + parseFloat(p.duration); }, 0);
+      var minD = Math.max(1, Math.ceil(days*0.75)), maxD = Math.ceil(days);
+      document.getElementById('ov-duration').textContent = '约 '+minD+'–'+maxD+' 天';
+      // 最长短板 = 四维里最低分
+      var min = D.radar.reduce(function(a,b){return a.score<b.score?a:b;});
+      document.getElementById('ov-weak').textContent = min.label+' '+min.score+' 分';
+    })();
+
+    // —— 筛选 chips ——
+    function buildChips(containerId, options, key){
+      var c = document.getElementById(containerId);
+      c.innerHTML='';
+      options.forEach(function(opt){
+        var el=document.createElement('div');
+        el.className='chip'+(state[key]===opt?' active':'');
+        el.textContent=opt;
+        el.onclick=function(){
+          state[key]=opt;
+          buildChips(containerId, options, key);
+          renderPlans();
+        };
+        c.appendChild(el);
+      });
+    }
+    buildChips('filter-room', ['全部','客厅','主卧','厨房'], 'room');
+    buildChips('filter-dim', ['全部','采光','收纳','动线','噪音'], 'dim');
+
+    // —— 渲染方案卡 ——
+    function renderPlans(){
+      var list = document.getElementById('plan-list');
+      list.innerHTML='';
+      var filtered = D.plans.filter(function(p){
+        return (state.room==='全部'||p.room===state.room) &&
+               (state.dim==='全部'||p.dimension===state.dim);
+      });
+      if(!filtered.length){
+        list.innerHTML='<div style="text-align:center;color:var(--muted);padding:30px 0">该筛选下暂无改造项</div>';
+        return;
+      }
+      filtered.forEach(function(p){
+        var inCart = SM.getCart().some(function(l){return l.planId===p.id;});
+        var card=document.createElement('div'); card.className='plan';
+        card.innerHTML =
+          '<div class="plan-head">'+
+            '<div><div class="plan-title">'+p.group+'</div>'+
+            '<div class="plan-tags"><span class="tag">'+p.room+'</span><span class="tag dim">'+p.dimension+'</span></div></div>'+
+            '<span class="prio '+p.priority+'">'+SM.PRIORITY_LABEL[p.priority]+'优先级</span>'+
+          '</div>'+
+          '<div class="field prob"><div class="ico">🔍</div><div class="fk">问题依据</div>'+
+            '<div class="fv">'+p.problem.replace(/(\d+) 分/,'<span class="score">$1 分</span>')+'</div></div>'+
+          '<div class="field act"><div class="ico">🛠</div><div class="fk">改造动作</div>'+
+            '<div class="fv">'+p.action+'</div></div>'+
+          '<div class="field effect"><div class="ico">✨</div><div class="fk">预期效果</div>'+
+            '<div class="fv">'+p.effect.replace(/约 (\d+)/,'<span class="up">约 $1</span>')+'</div></div>'+
+          '<div class="field"><div class="ico">💰</div><div class="fk">预算工期</div>'+
+            '<div class="fv">¥'+p.budgetMin.toLocaleString()+'–'+p.budgetMax.toLocaleString()+' · '+p.duration+'</div></div>'+
+          '<div class="plan-actions">'+
+            '<button class="btn ghost" data-cmp="'+p.id+'">👁 查看效果对比</button>'+
+            '<button class="btn '+(inCart?'added':'primary')+'" data-add="'+p.id+'">'+
+              (inCart?'✓ 已加入清单':'＋ 加入购物清单')+'</button>'+
+          '</div>';
+        list.appendChild(card);
+      });
+      bindPlanButtons();
+    }
+
+    function bindPlanButtons(){
+      document.querySelectorAll('[data-cmp]').forEach(function(b){
+        b.onclick=function(){ openCompare(b.getAttribute('data-cmp')); };
+      });
+      document.querySelectorAll('[data-add]').forEach(function(b){
+        b.onclick=function(){
+          if(b.classList.contains('added')) return;
+          var id=b.getAttribute('data-add');
+          var n=SM.addPlanToCart(id);
+          b.className='btn added'; b.textContent='✓ 已加入清单';
+          showToast('已加入 '+n+' 件 · 去清单查看 🛒');
+        };
+      });
+    }
+
+    // —— 效果对比弹层 ——
+    var modal=document.getElementById('modal');
+    var stage=document.getElementById('cmp-stage');
+    var slider=document.getElementById('cmp-slider');
+    function openCompare(id){
+      var p=D.plans.filter(function(x){return x.id===id;})[0];
+      document.getElementById('m-title').textContent=p.group+' · 效果对比';
+      var probText = p.problem.split('，')[0].replace(/(\d+) 分/, p.beforeScore+' 分');
+      stage.innerHTML =
+        '<div class="cmp-scene cmp-after">'+roomHTML(p,false)+'</div>'+
+        '<div class="cmp-scene cmp-before">'+roomHTML(p,true)+'</div>'+
+        '<div class="cmp-divider"></div>';
+      setPos(50);
+      modal.classList.add('show');
+    }
+    function roomHTML(p, isBefore){
+      var tag = isBefore ? ('⚠ '+p.problem.split('，')[0]) : ('✓ '+p.effect.split('，')[0]);
+      var blocker = isBefore ? '<div class="room-blocker"></div>' : '';
+      var sun = !isBefore ? '<div class="sun">☀</div>' : '';
+      var score = isBefore ? p.beforeScore : p.afterScore;
+      return '<div class="room">'+
+        '<div class="room-wall"></div>'+
+        '<div class="room-window"></div>'+blocker+
+        '<div class="room-floor"></div>'+
+        '<div class="room-sofa"></div><div class="room-table"></div>'+
+        sun+
+        '<div class="room-tag">'+tag+'</div>'+
+        '<div class="cmp-score">'+p.dimension+' '+score+' 分</div>'+
+      '</div>';
+    }
+    function setPos(v){
+      stage.style.setProperty('--pos', v+'%');
+      stage.querySelector('.cmp-divider').style.left=v+'%';
+    }
+    slider.oninput=function(){ setPos(this.value); };
+    document.getElementById('cmp-toggle').onclick=function(){
+      var cur=parseInt(slider.value,10);
+      var to=cur<50?100:0; slider.value=to; setPos(to);
+    };
+    document.getElementById('m-close').onclick=function(){ modal.classList.remove('show'); };
+    modal.onclick=function(e){ if(e.target===modal) modal.classList.remove('show'); };
+
+    // —— toast ——
+    var toastTimer;
+    function showToast(msg){
+      var t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show');
+      clearTimeout(toastTimer); toastTimer=setTimeout(function(){t.classList.remove('show');},1900);
+    }
+
+    // init
+    renderPlans();
+    SM.renderBadges();
+  </script>
+</body>
+</html>

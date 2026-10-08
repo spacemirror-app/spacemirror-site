@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>空间镜 · 商家工作台</title>
+  <link rel="stylesheet" href="../assets/app.css">
+</head>
+<body>
+  <div class="wrap">
+    <div class="topbar">
+      <a class="back" href="../account/index.html">‹</a>
+      <div>
+        <h1>商家工作台</h1>
+        <div class="sub">B 端 · 远期演示</div>
+      </div>
+    </div>
+
+    <div class="container">
+      <div class="card" style="margin-bottom:14px;background:linear-gradient(135deg,#3b82f6,#22d3ee);color:#fff;border:none">
+        <div style="font-weight:800;font-size:1.1rem" id="m-shop">欧派旗舰店</div>
+        <div style="font-size:.78rem;opacity:.92" id="m-role">全屋定制 · 已认证</div>
+      </div>
+
+      <div class="profile-grid" style="margin-top:0">
+        <div class="pg-cell"><div class="k">本月订单</div><div class="v" id="m-orders">0</div></div>
+        <div class="pg-cell"><div class="k">本月 GMV</div><div class="v" id="m-gmv">¥0</div></div>
+        <div class="pg-cell"><div class="k">应结佣金</div><div class="v" id="m-comm">¥0</div></div>
+        <div class="pg-cell"><div class="k">已结算</div><div class="v" id="m-paid">¥0</div></div>
+      </div>
+
+      <div style="font-weight:800;margin:16px 0 10px">方案派单</div>
+      <div id="order-list"></div>
+    </div>
+
+    <div class="tabbar">
+      <a class="tab" href="../prototype/index.html"><span class="ti">🏠</span><span>原型</span></a>
+      <a class="tab" href="../plan/index.html"><span class="ti">📋</span><span>方案</span></a>
+      <a class="tab" href="../cart/index.html"><span class="ti">🛒</span><span>清单</span><span class="tab-badge" data-cart-badge>0</span></a>
+      <a class="tab active" href="../account/index.html"><span class="ti">👤</span><span>我的</span></a>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="../assets/app-data.js"></script>
+  <script>
+    var SM = window.SPACE_MIRROR;
+    var $ = function (id) { return document.getElementById(id); };
+    function toast(m){var t=$('toast');t.textContent=m;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(function(){t.classList.remove('show');},1600);}
+
+    var M = SM.MERCHANT;
+    $('m-shop').textContent = M.shop;
+    $('m-role').textContent = M.role;
+    $('m-orders').textContent = M.settle.orders;
+    $('m-gmv').textContent = '¥' + M.settle.gmv.toLocaleString();
+    $('m-comm').textContent = '¥' + M.settle.commission.toLocaleString();
+    $('m-paid').textContent = '¥' + M.settle.paid.toLocaleString();
+
+    var STATUS_TAG = { '待接单': 'amber', '方案中': 'gray', '已完成': 'green' };
+    $('order-list').innerHTML = M.orders.map(function (o) {
+      return '<div class="card" style="margin-bottom:10px">' +
+        '<div style="display:flex;justify-content:space-between;align-items:center">' +
+          '<div style="font-weight:800">' + o.customer + '</div>' +
+          '<span class="tag ' + (STATUS_TAG[o.status] || 'gray') + '">' + o.status + '</span>' +
+        '</div>' +
+        '<div class="r-sub" style="margin:4px 0 10px">方案：' + o.plan + ' · ¥' + o.amount.toLocaleString() + '</div>' +
+        '<div style="display:flex;gap:8px">' +
+          '<button class="btn primary" style="flex:1" data-oid="' + o.id + '" data-act="接单"' + (o.status !== '待接单' ? ' disabled' : '') + '>接单</button>' +
+          '<button class="btn ghost" style="flex:1" data-oid="' + o.id + '" data-act="方案">查看方案</button>' +
+        '</div></div>';
+    }).join('');
+
+    $('order-list').querySelectorAll('button').forEach(function (b) {
+      b.addEventListener('click', function () {
+        var act = b.getAttribute('data-act');
+        if (act === '接单') toast('已接单，进入方案沟通');
+        else toast('打开方案详情（演示）');
+      });
+    });
+
+    SM.renderBadges();
+  </script>
+</body>
+</html>

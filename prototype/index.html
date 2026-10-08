@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-page-node-id="H9wRKCz4Uan5UHBOjOyGbb">
+<head data-page-node-id="gEN3EIxsdhAUu5YjN7B617">
+  <meta charset="UTF-8" data-page-node-id="5bruDTrIQDGuCyU5tamOAp">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" data-page-node-id="Yhfh10SL0fF32A7iifEK6q">
+  <title>空间镜 · MVP 原型 Demo</title>
+  <style>
+    :root {
+      --bg: #0f172a; --panel: #1e293b; --text: #f8fafc; --muted: #94a3b8;
+      --accent: #3b82f6; --accent-light: #60a5fa; --teal: #22d3ee; --orange: #f59e0b;
+      --green: #34d399; --purple: #a78bfa; --border: rgba(148,163,184,0.2);
+      --radius: 18px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+      background: linear-gradient(135deg, #0b1120 0%, #1e293b 100%);
+      color: var(--text); min-height: 100vh; display: grid; place-items: center;
+      padding: 1rem;
+    }
+    a { color: var(--accent-light); }
+    .desktop-wrap { width: min(420px, 100%); }
+    .phone {
+      background: #000; border-radius: 38px; padding: 10px;
+      box-shadow: 0 30px 80px rgba(0,0,0,0.55), inset 0 0 0 2px #334155;
+      position: relative;
+    }
+    .phone::before {
+      content: ""; position: absolute; top: 18px; left: 50%; transform: translateX(-50%);
+      width: 72px; height: 18px; background: #111; border-radius: 999px; z-index: 10;
+    }
+    .screen-area {
+      background: var(--bg); border-radius: 30px; overflow: hidden;
+      aspect-ratio: 9/19; position: relative; display: flex; flex-direction: column;
+    }
+    .statusbar {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 10px 18px 4px; font-size: 12px; color: var(--muted); z-index: 20;
+    }
+    .screens { flex: 1; position: relative; overflow: hidden; }
+    .screen {
+      position: absolute; inset: 0; overflow-y: auto; padding: 0 16px 80px;
+      opacity: 0; pointer-events: none; transform: translateX(30px);
+      transition: opacity .35s, transform .35s;
+    }
+    .screen.active { opacity: 1; pointer-events: auto; transform: translateX(0); }
+    .screen::-webkit-scrollbar { width: 0; }
+
+    .bottom-nav {
+      position: absolute; bottom: 0; left: 0; right: 0;
+      background: rgba(15,23,42,0.92); backdrop-filter: blur(16px);
+      border-top: 1px solid var(--border);
+      display: flex; justify-content: space-around; padding: 8px 0 20px;
+      z-index: 30;
+    }
+    .nav-item {
+      flex: 1; display: flex; flex-direction: column; align-items: center;
+      gap: 3px; font-size: 10px; color: var(--muted); cursor: pointer;
+    }
+    .nav-item.active { color: var(--accent-light); }
+    .nav-icon { width: 24px; height: 24px; }
+
+    .page-title { font-size: 1.3rem; font-weight: 800; margin: 18px 0 6px; }
+    .page-sub { font-size: .85rem; color: var(--muted); margin-bottom: 16px; }
+
+    .card {
+      background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 14px; margin-bottom: 12px;
+    }
+    .card h3 { font-size: .95rem; margin-bottom: 4px; }
+    .card p { font-size: .82rem; color: var(--muted); }
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+      padding: 12px 18px; border-radius: 999px; border: none; font-weight: 700;
+      font-size: .95rem; cursor: pointer; width: 100%; margin-top: 10px;
+      background: var(--accent); color: #fff; box-shadow: 0 6px 20px rgba(59,130,246,0.3);
+    }
+    .btn-ghost { background: transparent; color: var(--text); border: 1px solid var(--border); box-shadow: none; }
+
+    /* Home */
+    .hero-logo {
+      width: 72px; height: 72px; border-radius: 22px; margin: 24px auto 14px;
+      background: linear-gradient(135deg, var(--accent), var(--teal));
+      display: grid; place-items: center; font-size: 28px; font-weight: 800;
+      box-shadow: 0 12px 30px rgba(59,130,246,0.35);
+    }
+    .hero-h1 { text-align: center; font-size: 1.6rem; font-weight: 800; letter-spacing: -0.02em; }
+    .hero-p { text-align: center; color: var(--muted); font-size: .9rem; margin-top: 8px; }
+    .feature-list { margin-top: 18px; }
+    .feature-item {
+      display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--border);
+    }
+    .feature-item:last-child { border-bottom: none; }
+    .feature-icon {
+      width: 36px; height: 36px; border-radius: 10px; display: grid; place-items: center;
+      font-size: 14px; font-weight: 700; flex: 0 0 36px;
+    }
+
+    /* Scan */
+    .scan-viewport {
+      background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+      border-radius: var(--radius); border: 1px solid var(--border);
+      height: 320px; position: relative; overflow: hidden; margin-top: 10px;
+    }
+    .room-outline {
+      position: absolute; inset: 40px;
+      border: 2px dashed rgba(148,163,184,0.4); border-radius: 12px;
+    }
+    .laser {
+      position: absolute; left: 0; right: 0; height: 3px;
+      background: linear-gradient(90deg, transparent, var(--teal), transparent);
+      box-shadow: 0 0 18px var(--teal); animation: scan 2.4s ease-in-out infinite;
+    }
+    @keyframes scan {
+      0%,100% { top: 0; opacity: .2; } 50% { top: 100%; opacity: 1; }
+    }
+    .dot {
+      position: absolute; width: 5px; height: 5px; border-radius: 50%;
+      background: var(--accent-light); opacity: 0; animation: pop .5s forwards;
+    }
+    @keyframes pop { to { opacity: .8; transform: scale(1); } }
+    .scan-progress {
+      position: absolute; bottom: 16px; left: 20px; right: 20px;
+      background: rgba(255,255,255,0.1); border-radius: 999px; height: 8px;
+    }
+    .scan-progress span {
+      display: block; height: 100%; border-radius: 999px;
+      background: linear-gradient(90deg, var(--accent), var(--teal)); width: 0%;
+    }
+    .scan-status {
+      position: absolute; top: 12px; left: 0; right: 0; text-align: center;
+      font-size: .85rem; color: var(--teal); font-weight: 600;
+    }
+
+    /* Twin */
+    .twin-svg { width: 100%; border-radius: var(--radius); border: 1px solid var(--border); background: #0b1221; }
+    .zone-label { font-size: 11px; fill: var(--muted); }
+    .room-fill { fill: rgba(59,130,246,0.08); stroke: var(--accent); stroke-width: 2; }
+    .furniture { fill: rgba(148,163,184,0.35); }
+
+    /* Radar */
+    .radar-canvas { width: 100%; height: 220px; background: var(--panel); border-radius: var(--radius); border: 1px solid var(--border); }
+    .score-row {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 10px 0; border-bottom: 1px solid var(--border);
+    }
+    .score-row:last-child { border-bottom: none; }
+    .score-label { display: flex; align-items: center; gap: 8px; font-size: .88rem; }
+    .score-bar { flex: 1; height: 8px; background: rgba(255,255,255,0.08); border-radius: 999px; margin: 0 12px; max-width: 140px; }
+    .score-bar span { display: block; height: 100%; border-radius: 999px; }
+
+    /* AR overlay */
+    .ar-stage {
+      background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+      border-radius: var(--radius); border: 1px solid var(--border);
+      height: 300px; position: relative; overflow: hidden;
+    }
+    .ar-card {
+      position: absolute; background: rgba(30,41,59,0.92); border: 1px solid var(--border);
+      border-radius: 12px; padding: 10px 12px; min-width: 110px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.35); backdrop-filter: blur(8px);
+      font-size: .78rem;
+    }
+    .ar-card h4 { font-size: .8rem; margin-bottom: 4px; display: flex; align-items: center; gap: 4px; }
+    .ar-card p { color: var(--muted); font-size: .72rem; }
+
+    /* Smart home */
+    .device-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .device {
+      background: var(--panel); border: 1px solid var(--border); border-radius: 14px;
+      padding: 12px; display: flex; flex-direction: column; gap: 6px; cursor: pointer;
+      transition: all .2s;
+    }
+    .device.on { border-color: var(--accent); background: rgba(59,130,246,0.12); }
+    .device .name { font-size: .85rem; font-weight: 700; }
+    .device .status { font-size: .75rem; color: var(--muted); }
+    .device .toggle {
+      align-self: flex-end; width: 38px; height: 22px; border-radius: 999px;
+      background: #334155; position: relative; transition: background .2s;
+    }
+    .device.on .toggle { background: var(--accent); }
+    .device .toggle::after {
+      content: ""; position: absolute; top: 2px; left: 2px; width: 18px; height: 18px;
+      border-radius: 50%; background: #fff; transition: transform .2s;
+    }
+    .device.on .toggle::after { transform: translateX(16px); }
+
+    .back-link { position: absolute; top: 12px; left: 16px; z-index: 50; font-size: .85rem; color: var(--muted); cursor: pointer; }
+  </style>
+</head>
+<body data-page-node-id="4EYECCGOEyJdlLVTRDqOc1">
+  <div class="desktop-wrap" data-page-node-id="ZVwAGkWT0dhlieeK7JO4yl">
+    <div class="phone" data-page-node-id="FtzAT98aBBRoMceoCKq6de">
+      <div class="screen-area" data-page-node-id="LoAVXha05FkiX6t4wp8CYr">
+        <div class="statusbar" data-page-node-id="qyGZE9530YCks5Ckp0UC0H">
+          <span id="clock" data-page-node-id="rG4lGFsDREPKhfauo7mVbK">09:41</span>
+          <span data-page-node-id="edvkFBQh0QM1MzFdTCSWdQ">信号 ■■■ 5G</span>
+        </div>
+        <div class="screens" id="screens" data-page-node-id="APxQhtmnNXc0nZixDouWzG">
+          <!-- Home -->
+          <div class="screen active" id="screen-home" data-page-node-id="AcyZuLKZbpsejWjzdbd4Yy">
+            <div class="hero-logo" data-page-node-id="6qPs4SBmmVpaHLkqiywh4G">镜</div>
+            <div class="hero-h1" data-page-node-id="12E2VRJvgeWJkiA8hSpPJ3">空间镜</div>
+            <div class="hero-p" data-page-node-id="ILJhiD3dZYINGCRQvfLQ3C">把家变成可计算、可优化、可变现的数字孪生空间</div>
+            <button class="btn" id="btn-start-scan" style="margin-top:22px;" data-page-node-id="Uxm1OutPaUnfIk5Ck9YvmB">3 分钟扫描你的家</button>
+            <div class="feature-list" data-page-node-id="DwaHbEWyxIOUbcfmcKXtiV">
+              <div class="feature-item" data-page-node-id="Hc7p46PesCEFes4jipf4SK">
+                <div class="feature-icon" style="background: rgba(59,130,246,0.18); color: #60a5fa;" data-page-node-id="Sdsu1p8AfObZVu5XWzzQGa">扫</div>
+                <div data-page-node-id="dBEmENHNGL4KfXDAIjQuFF">
+                  <div style="font-weight:700;font-size:.9rem;" data-page-node-id="TmXpIPrrynNhouWbPRZOug">空间扫描</div>
+                  <div style="font-size:.78rem;color:var(--muted);" data-page-node-id="5r4hGqo5DS706KeObF9sDB">LiDAR / 单目视觉生成 3D 户型</div>
+                </div>
+              </div>
+              <div class="feature-item" data-page-node-id="yscA9pUSqcq6rMAOXNokOX">
+                <div class="feature-icon" style="background: rgba(34,211,238,0.15); color: #22d3ee;" data-page-node-id="tXPjeIXGDABeSzTFHvuUui">诊</div>
+                <div data-page-node-id="oHxnbb10pqkt7zsiCmJvGM">
+                  <div style="font-weight:700;font-size:.9rem;" data-page-node-id="EleT620t8g1NG7Sq5UaXfO">AI 四维诊断</div>
+                  <div style="font-size:.78rem;color:var(--muted);" data-page-node-id="QglBuWWpPJLk43Biyf0smz">动线 · 采光 · 收纳 · 噪音</div>
+                </div>
+              </div>
+              <div class="feature-item" data-page-node-id="RRW78ymr5OXfllFQMxVGmV">
+                <div class="feature-icon" style="background: rgba(245,158,11,0.15); color: #f59e0b;" data-page-node-id="6u1DnadXbki67Pr4QMR8I9">AR</div>
+                <div data-page-node-id="7BVyUypc6BD3Qbv3fFzvBQ">
+                  <div style="font-weight:700;font-size:.9rem;" data-page-node-id="OfZekqcBh9QMU13t3m0FgI">AR 信息叠加</div>
+                  <div style="font-size:.78rem;color:var(--muted);" data-page-node-id="GCQvImdmlk0eXepKny8YRE">日程、菜谱、穿搭、天气、快递、出门清单一目了然</div>
+                </div>
+              </div>
+              <div class="feature-item" data-page-node-id="J9wDpw7ILSPPWGYfJnKuq0">
+                <div class="feature-icon" style="background: rgba(52,211,153,0.15); color: #34d399;" data-page-node-id="HwVFxfDH4z6fWcd4bIpsXy">联</div>
+                <div data-page-node-id="bNruFDGrrJUAiDasNb2ska">
+                  <div style="font-weight:700;font-size:.9rem;" data-page-node-id="0ItencaCbnSVgPadFSGnlc">智能家居联动</div>
+                  <div style="font-size:.78rem;color:var(--muted);" data-page-node-id="qBsHE3bCT5wbc27yE9PBT7">Matter / 米家 / 鸿蒙无感接入</div>
+                </div>
+              </div>
+            </div>
+            <a href="../account/index.html" style="display:block;text-align:center;margin-top:18px;font-size:.82rem;color:var(--accent-light);text-decoration:none;font-weight:600;" data-page-node-id="homeLinkAcctD4">我的空间 / 数字孪生家 →</a>
+          </div>
+
+          <!-- Scan -->
+          <div class="screen" id="screen-scan" data-page-node-id="plvqZvLqPEULSttJOyKxks">
+            <div class="page-title" data-page-node-id="BXX5iBrPeBXZoXUb1WsVD9">扫描空间</div>
+            <div class="page-sub" data-page-node-id="bcoroGENW5WbwD121BLHrA">缓慢移动手机，让激光扫描整个房间</div>
+            <div class="scan-viewport" id="scan-viewport" data-page-node-id="9b3THSCO1BtkNq2lX7ORwT">
+              <div class="scan-status" id="scan-status" data-page-node-id="AoZpUAu2WlQMJfntpJfyN2">正在初始化传感器…</div>
+              <div class="room-outline" data-page-node-id="3XJabhvJF9NCrE8Jhh3Rlt"></div>
+              <div class="laser" data-page-node-id="rWx6q4x5StIFX6hXByEdFN"></div>
+              <div class="scan-progress" data-page-node-id="a2bHnTSRZ9aRAOXNEMUOex"><span id="scan-bar" data-page-node-id="ExNbU1j1OvxJlYrOFKiUTU"></span></div>
+            </div>
+            <div class="card" style="margin-top:14px;" data-page-node-id="C3wFDrCbmJqdntljsFyvtC">
+              <h3 data-page-node-id="dkZmNUGB7CHsOlnUcXl78t">扫描提示</h3>
+              <p data-page-node-id="kN0zISln109NlP7DAaCJRX">保持光线充足 · 移动平稳 · 覆盖房间四角</p>
+            </div>
+            <button class="btn btn-ghost" id="btn-cancel-scan" style="margin-top:6px;" data-page-node-id="PwcZ8rpgId5nADbyR08nl7">取消扫描</button>
+            <a class="btn btn-ghost" href="../homes/index.html" style="margin-top:6px; text-decoration:none; display:flex; justify-content:center;" data-page-node-id="scanToHomesLink">🏠 查看已扫空间 →</a>
+          </div>
+
+          <!-- Twin -->
+          <div class="screen" id="screen-twin" data-page-node-id="zabXiCP8lB8VOBCTxUC6Lo">
+            <div class="page-title" data-page-node-id="b6tAqOF2a6p2TvSwwk12O0">数字孪生家</div>
+            <div class="page-sub" data-page-node-id="VaU9iYYvaBXA7OzxjAL5ma">2026-10-07 · 89㎡ · 3 室 2 厅</div>
+            <svg class="twin-svg" viewBox="0 0 320 260" id="twin-svg" data-page-node-id="Gf4J9W8USE5A1vF9YRKwEh">
+              <rect x="20" y="20" width="200" height="140" class="room-fill" rx="4" data-page-node-id="g56OJ2SOBivzF5J5e244JC"/>
+              <rect x="30" y="30" width="50" height="30" class="furniture" data-page-node-id="rW5PUUs3FQGggBFkC62Hch"/>
+              <rect x="140" y="40" width="60" height="45" class="furniture" data-page-node-id="lxE1LM3JVVbPtP6n9UrEvr"/>
+              <rect x="40" y="110" width="70" height="35" class="furniture" data-page-node-id="PkV0IkYLDP6nlBIXnWNPVD"/>
+              <rect x="230" y="20" width="70" height="90" class="room-fill" rx="4" data-page-node-id="tawGWT1jSnpJRe8x9ikrdt"/>
+              <rect x="240" y="40" width="45" height="25" class="furniture" data-page-node-id="URE1NlfUAdHb7bmi4KN98u"/>
+              <rect x="230" y="130" width="70" height="110" class="room-fill" rx="4" data-page-node-id="UPh096WN6342FV9Tl7Nrlb"/>
+              <rect x="240" y="150" width="45" height="35" class="furniture" data-page-node-id="IyOgdOf8S0fKG3Ecceb7zf"/>
+              <rect x="20" y="180" width="200" height="60" class="room-fill" rx="4" data-page-node-id="FD4jPpVQ23g6AdUkXbiCMV"/>
+              <rect x="30" y="190" width="55" height="40" class="furniture" data-page-node-id="MrTfopWAYz35LBHKuwpcwH"/>
+              <rect x="140" y="195" width="60" height="35" class="furniture" data-page-node-id="XOTbCmCqCpGFCva0Wllzzz"/>
+              <text x="110" y="90" text-anchor="middle" class="zone-label" data-page-node-id="G3oPXuzTy9LR9MCsX43BaH">客厅</text>
+              <text x="265" y="70" text-anchor="middle" class="zone-label" data-page-node-id="wYAByBfj9F1VqvUAyd3whf">主卧</text>
+              <text x="265" y="185" text-anchor="middle" class="zone-label" data-page-node-id="ml675pB7AEWdETZC9Xuxj1">次卧</text>
+              <text x="120" y="215" text-anchor="middle" class="zone-label" data-page-node-id="aGTLdEOcAQ2QZkanTudcla">厨房+餐厅</text>
+            </svg>
+            <div class="device-grid" style="margin-top:12px;" data-page-node-id="RFsFfr1Jy52pcc6WhmmtV2">
+              <div class="card" style="text-align:center;padding:16px 0;" data-page-node-id="xSZGZdgkbvxxvAQCehTEha">
+                <div style="font-size:1.4rem;font-weight:800;color:var(--accent-light);" data-page-node-id="EFubFVHpS8cJKY7JnUAYkX">89</div>
+                <div style="font-size:.75rem;color:var(--muted);" data-page-node-id="9UmAWwi9ZNCwgrzHGcEG9k">建筑面积 m²</div>
+              </div>
+              <div class="card" style="text-align:center;padding:16px 0;" data-page-node-id="XhA6LLenXcxXnFuiVWaQHk">
+                <div style="font-size:1.4rem;font-weight:800;color:var(--teal);" data-page-node-id="Hs1LHmxYuUa0veaYJI4oie">3.2</div>
+                <div style="font-size:.75rem;color:var(--muted);" data-page-node-id="c6SpAAooBbImD2OsAA2BwJ">扫描耗时 min</div>
+              </div>
+            </div>
+            <button class="btn" id="btn-diagnose" style="margin-top:10px;" data-page-node-id="u3aP2zpDNzfJ8mtjPjrQ3D">生成 AI 诊断报告</button>
+            <a class="btn btn-ghost" href="../editor/index.html?home=h1" style="margin-top:8px; text-decoration:none; display:flex;" data-page-node-id="edLinkPcEditA1">🖥 电脑端打开编辑 →</a>
+          </div>
+
+          <!-- Diagnosis -->
+          <div class="screen" id="screen-diagnosis" data-page-node-id="GxMAW3kjYzSHGNLsZvD3L7">
+            <div class="page-title" data-page-node-id="8kHfZc8lxMCKeONcYbPzt1">AI 空间诊断</div>
+            <div class="page-sub" data-page-node-id="Y1egvGSgli5pYy5HVxOFBh">基于数字孪生的四维量化分析</div>
+            <canvas class="radar-canvas" id="radar-canvas" data-page-node-id="vE7OBMUX6f7s2sIifZsJRc"></canvas>
+            <div class="card" data-page-node-id="1n9DDcjr9MOlkyZb03FtIV">
+              <div class="score-row" data-page-node-id="pwbUIBo0lkjbdjAtwE9yVH">
+                <div class="score-label" data-page-node-id="c9UJd6PYmNZ8jqjRHHhRza"><span style="color:var(--accent-light);" data-page-node-id="gaXlcCAoniXXGNCGOsFGM6">●</span> 动线流畅</div>
+                <div class="score-bar" data-page-node-id="TmZS4pVIWKTcgTbhONbV9B"><span style="width:72%;background:var(--accent-light);" data-page-node-id="NQfKerpYFNGOGFPAAlYRGL"></span></div>
+                <div style="font-weight:700;" data-page-node-id="0dXUABrDfXK5jU88kIxaWI">72</div>
+              </div>
+              <div class="score-row" data-page-node-id="r3lpB0OOWVFXaSuZMDP8ag">
+                <div class="score-label" data-page-node-id="sZ61LEEak4Prq5wCG6XIv1"><span style="color:var(--orange);" data-page-node-id="EQEV9KzsHKsEpW7oZ7iksu">●</span> 采光充足</div>
+                <div class="score-bar" data-page-node-id="a3XDxDajQYaz9tbQRvkNkA"><span style="width:58%;background:var(--orange);" data-page-node-id="WBr3FI7ajDrIkhonA5FjLu"></span></div>
+                <div style="font-weight:700;" data-page-node-id="7z6FdYEyiAXeBSzD1KQ1G3">58</div>
+              </div>
+              <div class="score-row" data-page-node-id="vPJPvrS7pVBuUQPpyBwFXz">
+                <div class="score-label" data-page-node-id="1RXQYOUHdr7EOGbYTcSzyB"><span style="color:var(--teal);" data-page-node-id="TvKFsp3rtFekU3WT8F2sgf">●</span> 收纳合理</div>
+                <div class="score-bar" data-page-node-id="KPYCxAuqpLDIBx9RHB6nTT"><span style="width:45%;background:var(--teal);" data-page-node-id="P5XSGvk6ublIGA66bWsZCQ"></span></div>
+                <div style="font-weight:700;" data-page-node-id="eSQpCVTMzf3f2ddQd5OVt3">45</div>
+              </div>
+              <div class="score-row" data-page-node-id="7PrAcKYD9FkuvKWvsTKiQB">
+                <div class="score-label" data-page-node-id="j2iDflKuDo3R8gOlZCGx38"><span style="color:var(--green);" data-page-node-id="YTvcRlp9Hjk4s7jvCnIaM0">●</span> 噪音控制</div>
+                <div class="score-bar" data-page-node-id="20iQlBTVTJvZcSy7jld6yZ"><span style="width:68%;background:var(--green);" data-page-node-id="BgBaYA1NJeiIEnplBlfDEz"></span></div>
+                <div style="font-weight:700;" data-page-node-id="VAHCS5QYQyHiUV7gkb4PYg">68</div>
+              </div>
+            </div>
+            <div class="card" data-page-node-id="frIE272FQGv55GAC4B8FSC">
+              <h3 data-page-node-id="u43svrb5rblRguUavMdKB8">优先改造建议</h3>
+              <p style="margin-top:6px;" data-page-node-id="5Xf7sXiKdttLoIhCFMYb7E">1. 客厅南向采光不足，建议替换阳台隔断为极窄边框门。</p>
+              <p data-page-node-id="cP9IEVSM5OrgpfT2YgnVMI">2. 主卧衣柜收纳率低，推荐增加 1.2m 顶天立地柜。</p>
+              <p data-page-node-id="LKDbSIK77ez3lnmjygG6GC">3. 厨房 L 型动线存在折返，建议调整冰箱位至入口。</p>
+              <a class="btn" href="../plan/index.html" style="margin-top:10px; text-decoration:none; display:flex;" data-page-node-id="SlMCetPF1Kjc0nvnZCq0kt">查看方案与购物清单 →</a>
+            </div>
+          </div>
+
+          <!-- AR -->
+          <div class="screen" id="screen-ar" data-page-node-id="fc9syWwMCSREZYiSlIECFh">
+            <div class="page-title" data-page-node-id="2jlv3UvaNZag5EaLyPsiDF">AR 生活助手</div>
+            <div class="page-sub" data-page-node-id="pNdxgLdRcUyGhMIfE4FPqj">把空间变成信息界面</div>
+            <div class="ar-stage" data-page-node-id="l0XHwAmUTXiur5x7A1r0Cq">
+              <svg width="100%" height="100%" viewBox="0 0 320 300" data-page-node-id="duGioRPwYdzpCyaJR2QE4R">
+                <rect x="20" y="30" width="200" height="130" class="room-fill" rx="4" data-page-node-id="GHvI5Fc1jbTMYw99AMmuAY"/>
+                <rect x="240" y="30" width="60" height="90" class="room-fill" rx="4" data-page-node-id="mWrR2CbvFCXoZjWaUy6d31"/>
+                <rect x="20" y="180" width="150" height="90" class="room-fill" rx="4" data-page-node-id="2rxC6kOEObqFTGotObkEnT"/>
+                <circle cx="130" cy="110" r="6" fill="var(--accent-light)" opacity="0.6" data-page-node-id="642YhSYhOHqjcpNGNbRVFy"/>
+              </svg>
+              <div class="ar-card" style="top:50px;left:30px;" data-page-node-id="HXAwFHazMadXWtpt8atIFE">
+                <h4 data-page-node-id="AOvpVtjwU1D2MEBqvtYSdp">🗓 日程墙</h4>
+                <p data-page-node-id="lT7M5FPRlSIwJoAeGE1qqI">14:00 设计方案会<br data-page-node-id="J54X7JbHqTSxSNtlvp0CKJ">19:30 瑜伽课</p>
+              </div>
+              <div class="ar-card" style="top:120px;left:170px;" data-page-node-id="QXFi2rQLvteo20BEaBbdim">
+                <h4 data-page-node-id="AsrHDoeuy9gv8lfwAvBUlv">👗 衣柜穿搭</h4>
+                <p data-page-node-id="aGgDK1T7VItkvSxJX9okze">今日 18°C · 推荐浅灰开衫</p>
+              </div>
+              <div class="ar-card" style="top:210px;left:40px;" data-page-node-id="JyrUwldZpJetfVSasMI1mW">
+                <h4 data-page-node-id="b4fkrKdFv8ANqMeLVkdD3d">🍳 台面菜谱</h4>
+                <p data-page-node-id="S155fQKPJpqP7qR8mkk3m5">晚餐：番茄牛腩 35min</p>
+              </div>
+              <div class="ar-card" style="top:50px;right:20px;" data-page-node-id="ItN8H3oorjtTqXWrgTTVOD">
+                <h4 data-page-node-id="vc8CMLED52PllzXAf4bfcZ">🌤 门厅天气</h4>
+                <p data-page-node-id="6gPG5eEvoWxN9o9xjLMDU8">广州 24°C · 小雨</p>
+              </div>
+              <div class="ar-card" style="top:122px;right:18px;" data-page-node-id="Pk9xRzQfV2mNwbLdYhJt7a">
+                <h4 data-page-node-id="qW1mTpLcX8nYvBd3eKz0Rb">📦 门厅快递提醒</h4>
+                <p data-page-node-id="Lm2nVbCxR9pQwYd4fZa1Sc">顺丰 · 玄关代收点<br data-page-node-id="Nb3oWcDyE0qRxZf5gAb2Td">2 件待取</p>
+              </div>
+              <div class="ar-card" style="top:208px;left:168px;" data-page-node-id="Mr4yUeWfX3nZxcLdEiKt8b">
+                <h4 data-page-node-id="sN5zVfXgY0pQwBc6hLd3Ue">🚪 玄关出门清单</h4>
+                <p data-page-node-id="Tp6aWgYh1qRxZc7iMe4Vf">钥匙 · 手机 · 工卡<br data-page-node-id="Uq7bXhZi2rSyAd8jNf5Wg">☐ 充电宝 ✅ 口罩</p>
+              </div>
+            </div>
+            <div class="card" data-page-node-id="sRqDTXqmKjhzqSST6B84eH">
+              <h3 data-page-node-id="Rbkmb9tfP3v8ObDRtHguCS">AR 叠加能力</h3>
+              <p data-page-node-id="YJqL61HvVxJAYWBnSRifhW">基于空间定位，在生活场景自动浮现日程、菜谱、穿搭、天气，以及门厅快递提醒、玄关出门清单，无需解锁手机。</p>
+            </div>
+            <a class="btn btn-ghost" href="../mall/index.html" style="margin-top:8px; text-decoration:none; display:flex;" data-page-node-id="arLinkMallB2">🏬 逛店实景孪生完整版 →</a>
+          </div>
+
+          <!-- Smart Home -->
+          <div class="screen" id="screen-smart" data-page-node-id="zjwfTWIsj3nEeLY6MB7qdU">
+            <div class="page-title" data-page-node-id="eeDFIy6g1b8cjetzuZF5NS">智能家居联动</div>
+            <div class="page-sub" data-page-node-id="yiFZrZ9k7ENIQVCf3cPjI1">识别空间与活动，无感自动调节</div>
+            <div class="device-grid" data-page-node-id="Aw5Ec2EmDtVlSZ94PW35eV">
+              <div class="device on" data-dev="light-living" data-page-node-id="loufZhB6osR9g0NPiLppla"><div class="name" data-page-node-id="LtuYhq6rMUHWm8JYVkEpcZ">客厅主灯</div><div class="status" data-page-node-id="18B2vapk19jAz2N2YKOz5F">已开启 · 亮度 80%</div><div class="toggle" data-page-node-id="vr8XsXLbxUqcdBp1jZ4i3X"></div></div>
+              <div class="device on" data-dev="ac-living" data-page-node-id="ruN0RBLNWPHEgEdhtefZR8"><div class="name" data-page-node-id="lYXqGctCQE4mmtj5vCCT9j">客厅空调</div><div class="status" data-page-node-id="8bDPDxkpQndvcdVAnzjOWp">已开启 · 24°C</div><div class="toggle" data-page-node-id="xunYAf4gCLPNPslPISEZYS"></div></div>
+              <div class="device" data-dev="light-bedroom" data-page-node-id="qtl9VEz29gpLRU1zqU1Txi"><div class="name" data-page-node-id="shfr4Aq11gyPsIm5UTRRst">卧室台灯</div><div class="status" data-page-node-id="bJbTBKDGGMWra6jODdh6CZ">已关闭</div><div class="toggle" data-page-node-id="yaUINPlWvaKBxGp17GeU4X"></div></div>
+              <div class="device on" data-dev="curtain" data-page-node-id="WAsP0HgrDHRxaY0Xpj4xhS"><div class="name" data-page-node-id="IcpSkqezeQeZUuP0tIWb01">智能窗帘</div><div class="status" data-page-node-id="Mu7bTqFa1XMNGznBhrChl5">已开启 · 透光 60%</div><div class="toggle" data-page-node-id="YP7XHMJv2R6Eb7vIZp2UBi"></div></div>
+              <div class="device" data-dev="purifier" data-page-node-id="LM9QefkTm7G2oYRZ2FXNxR"><div class="name" data-page-node-id="OJE5oGIDtTm4IEw7GFv30Y">空气净化器</div><div class="status" data-page-node-id="0sIJA1IMQJg0n0LWK16OnE">已关闭</div><div class="toggle" data-page-node-id="FaDpKVEJz9T9tr98R8o9ll"></div></div>
+              <div class="device on" data-dev="speaker" data-page-node-id="ILumur2eht9eaOrDqBtGfy"><div class="name" data-page-node-id="iFrOhnrPpyROLhtzTNQlCt">场景音箱</div><div class="status" data-page-node-id="znPJcIPuCUQ3b0c7oH5Nls">播放轻音乐</div><div class="toggle" data-page-node-id="nu0W37gWOsOO6RpJXtqU36"></div></div>
+            </div>
+            <div class="card" style="margin-top:14px;" data-page-node-id="jH4TnWUC8lfBRopcdOJywi">
+              <h3 data-page-node-id="hI8wWhtgouRN2gDogFSBuX">当前场景：回家模式</h3>
+              <p data-page-node-id="GomelfMagzJWwEJxLGDTJG">检测到您进入客厅，已自动开启灯光、空调并播放轻音乐。联动基于 Matter / 米家 / 鸿蒙生态。</p>
+            </div>
+            <a class="btn btn-ghost" href="../smarthome/index.html" style="margin-top:10px; text-decoration:none; display:flex;" data-page-node-id="smLinkHomeC3">🎛 场景编排完整版 →</a>
+          </div>
+        </div>
+
+        <div class="bottom-nav" id="bottom-nav" data-page-node-id="nc3cAhGxTkiDzq00w2zFef">
+          <div class="nav-item active" data-target="home" data-page-node-id="puWcgXM682Gxh9HBnWIhlj">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" data-page-node-id="WZ8wpSqk2XuzWGqnTowlAl"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" data-page-node-id="Zk3bG5sDPd7awCWFwVXB7i"/><polyline points="9 22 9 12 15 12 15 22" data-page-node-id="y6TKHTbypAGQ7yp8Tl58ak"/></svg>
+            <span data-page-node-id="4jSXW3pl3q54NToYa8y80O">首页</span>
+          </div>
+          <div class="nav-item" data-target="twin" data-page-node-id="FGoG9Fidg8UhTIyCS0SBPU">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" data-page-node-id="mCzZ4BsGGRGmdA5l3u6HkC"><rect x="3" y="3" width="18" height="18" rx="2" data-page-node-id="HKrj2OX3vHrbLID0WjvcvC"/><path d="M3 9h18M9 21V9" data-page-node-id="DzyGZUJLTMUo8aBUhrJgjE"/></svg>
+            <span data-page-node-id="QtPyUUzPKW4gUCjzGLS1ps">孪生</span>
+          </div>
+          <div class="nav-item" data-target="diagnosis" data-page-node-id="ohjqY3zKcsU3nxzKLIbNiU">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" data-page-node-id="7BuBHh8ATiMvzGNaL0LJLB"><circle cx="12" cy="12" r="10" data-page-node-id="pPNgFfmkr4Tdtlt3ADtyAF"/><path d="M12 6v6l4 2" data-page-node-id="ZCVYZrtAKmDpquQggjDqhD"/></svg>
+            <span data-page-node-id="RuAsNGFExPR29VGJvuG9jF">诊断</span>
+          </div>
+          <div class="nav-item" data-target="ar" data-page-node-id="vcshDqs8GCCRAOL691GI1e">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" data-page-node-id="wMhT09zBhFgjeFhL9YxHWB"><path d="M4 9l8-5 8 5v9l-8 5-8-5V9z" data-page-node-id="qqXIe8EWT6akQl0VaGoGBR"/><path d="M12 22V12" data-page-node-id="dAGChrmC9eABClTUzD82mR"/></svg>
+            <span data-page-node-id="nlGnnihScDRVSYq8I2ALPs">AR</span>
+          </div>
+          <div class="nav-item" data-target="smart" data-page-node-id="DmVRPXUKkeVrFHqS3W8bj5">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" data-page-node-id="baMm06xR1DmkztwlRxqMMT"><path d="M12 2a7 7 0 0 1 7 7c0 4.418-7 13-7 13S5 13.418 5 9a7 7 0 0 1 7-7z" data-page-node-id="Noer2CvxU9dOg4PFSFlXwc"/><circle cx="12" cy="9" r="2.5" data-page-node-id="xwM4ycea8I9O7bVkRVbR10"/></svg>
+            <span data-page-node-id="9CUiQWciWXrYJEECjAotBX">联动</span>
+          </div>
+          <a class="nav-item" data-target="me" href="../account/index.html" data-page-node-id="meNavAcctXy1">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" data-page-node-id="meNavUserA2b3"><circle cx="12" cy="8" r="4" data-page-node-id="meNavUc0d4"/><path d="M4 21a8 8 0 0 1 16 0" data-page-node-id="meNavUe5f6"/></svg>
+            <span data-page-node-id="meNavMe7g8">我的</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const screens = ['home','scan','twin','diagnosis','ar','smart'];
+    function showScreen(name) {
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      document.getElementById('screen-' + name).classList.add('active');
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.toggle('active', n.dataset.target === name));
+      if (name === 'diagnosis') drawRadar();
+    }
+
+    // 支持 URL 锚点深链（如 #ar 直接进 AR 屏）
+    const validScreens = ['home','scan','twin','diagnosis','ar','smart','me'];
+    if (location.hash) {
+      const h = location.hash.replace('#','');
+      if (validScreens.includes(h) && h !== 'me') showScreen(h);
+    }
+
+    document.querySelectorAll('.nav-item').forEach(item => {
+      item.addEventListener('click', (e) => {
+        if (item.dataset.target === 'me') return; // 锚点自行跳转账号页
+        showScreen(item.dataset.target);
+      });
+    });
+
+    document.getElementById('btn-start-scan').addEventListener('click', () => {
+      showScreen('scan');
+      startScan();
+    });
+    document.getElementById('btn-cancel-scan').addEventListener('click', () => showScreen('home'));
+    document.getElementById('btn-diagnose').addEventListener('click', () => showScreen('diagnosis'));
+
+    function startScan() {
+      const bar = document.getElementById('scan-bar');
+      const status = document.getElementById('scan-status');
+      const viewport = document.getElementById('scan-viewport');
+      // remove old dots
+      viewport.querySelectorAll('.dot').forEach(d => d.remove());
+      bar.style.width = '0%';
+      let progress = 0;
+      const messages = [
+        '正在识别墙体结构…','正在识别门窗位置…','正在匹配家具轮廓…','正在生成点云…','正在云端重建…','正在结构化户型…'
+      ];
+      const timer = setInterval(() => {
+        progress += Math.random() * 2.5 + 0.8;
+        if (progress > 100) progress = 100;
+        bar.style.width = progress + '%';
+        const msgIdx = Math.min(Math.floor(progress / 18), messages.length - 1);
+        status.textContent = messages[msgIdx];
+        // add dots
+        if (Math.random() > 0.5) {
+          const dot = document.createElement('div');
+          dot.className = 'dot';
+          dot.style.left = (8 + Math.random() * 84) + '%';
+          dot.style.top = (8 + Math.random() * 80) + '%';
+          dot.style.boxShadow = `0 0 8px ${Math.random() > 0.5 ? '#60a5fa' : '#22d3ee'}`;
+          viewport.appendChild(dot);
+        }
+        if (progress >= 100) {
+          clearInterval(timer);
+          status.textContent = '孪生空间已生成';
+          setTimeout(() => showScreen('twin'), 700);
+        }
+      }, 120);
+    }
+
+    function drawRadar() {
+      const canvas = document.getElementById('radar-canvas');
+      const dpr = window.devicePixelRatio || 1;
+      const rect = canvas.getBoundingClientRect();
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+      const ctx = canvas.getContext('2d');
+      ctx.scale(dpr, dpr);
+      const w = rect.width, h = rect.height;
+      const cx = w / 2, cy = h / 2 + 6;
+      const maxR = Math.min(w, h) * 0.34;
+      const labels = ['动线流畅', '采光充足', '收纳合理', '噪音控制'];
+      const vals = [0.72, 0.58, 0.45, 0.68];
+      const colors = ['#60a5fa', '#f59e0b', '#22d3ee', '#34d399'];
+
+      ctx.clearRect(0, 0, w, h);
+      ctx.strokeStyle = 'rgba(148,163,184,0.25)'; ctx.lineWidth = 1;
+      for (let r = 1; r <= 4; r++) {
+        ctx.beginPath();
+        for (let i = 0; i < 4; i++) {
+          const ang = Math.PI / 2 * i - Math.PI / 2;
+          const x = cx + Math.cos(ang) * maxR * (r / 4);
+          const y = cy + Math.sin(ang) * maxR * (r / 4);
+          if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+        }
+        ctx.closePath(); ctx.stroke();
+      }
+      // axes
+      for (let i = 0; i < 4; i++) {
+        const ang = Math.PI / 2 * i - Math.PI / 2;
+        ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx + Math.cos(ang) * maxR, cy + Math.sin(ang) * maxR); ctx.stroke();
+        ctx.fillStyle = '#e2e8f0'; ctx.font = '12px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        const lx = cx + Math.cos(ang) * (maxR + 20);
+        const ly = cy + Math.sin(ang) * (maxR + 20);
+        ctx.fillText(labels[i], lx, ly);
+      }
+      // data area
+      ctx.beginPath();
+      vals.forEach((v, i) => {
+        const ang = Math.PI / 2 * i - Math.PI / 2;
+        const x = cx + Math.cos(ang) * maxR * v;
+        const y = cy + Math.sin(ang) * maxR * v;
+        if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      });
+      ctx.closePath();
+      ctx.fillStyle = 'rgba(59,130,246,0.28)'; ctx.fill();
+      ctx.strokeStyle = '#60a5fa'; ctx.lineWidth = 2; ctx.stroke();
+      // points
+      vals.forEach((v, i) => {
+        const ang = Math.PI / 2 * i - Math.PI / 2;
+        const x = cx + Math.cos(ang) * maxR * v;
+        const y = cy + Math.sin(ang) * maxR * v;
+        ctx.beginPath(); ctx.arc(x, y, 5, 0, Math.PI * 2); ctx.fillStyle = colors[i]; ctx.fill();
+      });
+    }
+
+    document.querySelectorAll('.device').forEach(dev => {
+      dev.addEventListener('click', () => {
+        dev.classList.toggle('on');
+        const status = dev.querySelector('.status');
+        const name = dev.querySelector('.name').textContent;
+        const on = dev.classList.contains('on');
+        if (name.includes('灯')) status.textContent = on ? '已开启 · 亮度 80%' : '已关闭';
+        if (name.includes('空调')) status.textContent = on ? '已开启 · 24°C' : '已关闭';
+        if (name.includes('窗帘')) status.textContent = on ? '已开启 · 透光 60%' : '已关闭';
+        if (name.includes('净化器')) status.textContent = on ? '已开启 · 自动模式' : '已关闭';
+        if (name.includes('音箱')) status.textContent = on ? '播放轻音乐' : '已关闭';
+      });
+    });
+
+    function updateClock() {
+      const now = new Date();
+      document.getElementById('clock').textContent = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
+    }
+    updateClock();
+    setInterval(updateClock, 30000);
+  </script>
+</body>
+</html>
