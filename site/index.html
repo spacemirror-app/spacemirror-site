@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>空间镜 · 工长施工端（开放平台 M0）</title>
+<style>
+  :root{
+    --ink:#1b1f24; --ink2:#3f4752; --mut:#7a848f; --line:#d8dde3;
+    --bg:#f2f3f0; --card:#ffffff; --amber:#f97316; --amber-d:#c2570b;
+    --steel:#2b3138; --ok:#15803d; --blue:#2563eb; --red:#dc2626;
+    --r:14px;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{margin:0;background:#e9eae6;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Noto Sans CJK SC",sans-serif;color:var(--ink)}
+  .wrap{max-width:480px;margin:0 auto;min-height:100vh;background:var(--bg);display:flex;flex-direction:column}
+  /* 工地感：安全条纹 */
+  .hz{height:6px;background:repeating-linear-gradient(45deg,#f97316 0 12px,#1b1f24 12px 24px)}
+  .top{background:var(--steel);color:#fff;padding:14px 16px 16px}
+  .top h1{margin:0;font-size:19px;font-weight:800;letter-spacing:.5px}
+  .top .sub{font-size:12px;color:#aeb6bf;margin-top:3px}
+  .crew{margin-top:12px;background:rgba(255,255,255,.08);border-radius:12px;padding:10px 12px;display:flex;align-items:center;gap:10px}
+  .crew .av{width:38px;height:38px;border-radius:10px;background:var(--amber);display:flex;align-items:center;justify-content:center;font-size:19px}
+  .crew b{font-size:14px;display:block}
+  .crew small{color:#aeb6bf;font-size:11px}
+  .badge-m0{margin-left:auto;background:var(--amber);color:#1b1f24;font-size:10px;font-weight:800;padding:3px 7px;border-radius:6px}
+  main{flex:1;padding:14px 14px 84px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:14px;margin-bottom:12px}
+  .sec{font-size:12px;font-weight:800;color:var(--mut);letter-spacing:1px;margin:16px 2px 8px}
+  .chip{display:inline-block;font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px;background:#eef1f4;color:var(--ink2)}
+  .chip.hot{background:#fff1e6;color:var(--amber-d)}
+  .chip.ok{background:#e8f6ec;color:var(--ok)}
+  .chip.do{background:#e6efff;color:var(--blue)}
+  .chip.gray{background:#eceef0;color:#6b7480}
+  .btn{display:block;width:100%;border:none;border-radius:12px;padding:15px;font-size:16px;font-weight:800;cursor:pointer;font-family:inherit}
+  .btn.primary{background:var(--amber);color:#1b1f24}
+  .btn.dark{background:var(--steel);color:#fff}
+  .btn.ghost{background:#fff;border:1.5px solid var(--line);color:var(--ink)}
+  .btn:disabled{background:#e3e5e2;color:#9aa2ab;cursor:not-allowed}
+  .btn.sm{display:inline-block;width:auto;padding:10px 14px;font-size:14px;border-radius:10px}
+  .row{display:flex;gap:8px}
+  .order{border-left:5px solid var(--amber)}
+  .order.s-gray{border-left-color:#c3c9cf}
+  .order.s-blue{border-left-color:var(--blue)}
+  .order.s-ok{border-left-color:var(--ok)}
+  .o-top{display:flex;justify-content:space-between;gap:8px}
+  .o-top h3{margin:0 0 4px;font-size:16px}
+  .o-meta{font-size:12px;color:var(--mut);line-height:1.7}
+  .perm{margin-top:10px;background:#fbf7f2;border:1px dashed #e6c9a8;border-radius:10px;padding:8px 10px;font-size:11.5px;color:#8a5a2b;line-height:1.6}
+  .perm b{color:#7a4612}
+  .tl{border-left:2px dashed #cfd5da;margin-left:6px;padding-left:14px}
+  .tl li{list-style:none;position:relative;margin-bottom:12px;font-size:13px}
+  .tl li::before{content:"";position:absolute;left:-21px;top:4px;width:9px;height:9px;border-radius:50%;background:var(--amber)}
+  .tl .t{color:var(--mut);font-size:11px}
+  .chk{display:flex;align-items:center;gap:10px;padding:11px;border:1px solid var(--line);border-radius:11px;margin-bottom:8px;background:#fff;cursor:pointer}
+  .chk .box{width:26px;height:26px;border-radius:7px;border:2px solid #c3c9cf;display:flex;align-items:center;justify-content:center;font-weight:900;color:#fff;flex:none}
+  .chk.on{border-color:var(--ok);background:#f3faf5}
+  .chk.on .box{background:var(--ok);border-color:var(--ok)}
+  .chk .nm{font-size:14px;font-weight:600}
+  .chk .sp{font-size:11px;color:var(--mut)}
+  .tabbar{position:fixed;bottom:0;left:0;right:0;max-width:480px;margin:0 auto;background:#fff;border-top:2px solid var(--steel);display:grid;grid-template-columns:repeat(4,1fr);z-index:20}
+  .tab{padding:11px 4px 13px;text-align:center;font-size:12px;color:var(--mut);font-weight:700;border:none;background:none;cursor:pointer;font-family:inherit}
+  .tab .ti{display:block;font-size:20px;margin-bottom:2px}
+  .tab.active{color:var(--amber-d)}
+  .tabn{position:absolute;top:6px;right:22%;background:var(--red);color:#fff;font-size:10px;padding:1px 5px;border-radius:8px}
+  .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:90px;background:#1b1f24;color:#fff;padding:11px 18px;border-radius:22px;font-size:13px;opacity:0;pointer-events:none;transition:.25s;z-index:50;max-width:88%}
+  .toast.on{opacity:1;bottom:100px}
+  .foot{font-size:11px;color:var(--mut);text-align:center;line-height:1.8;padding:6px 10px 0}
+  .foot a{color:var(--blue);text-decoration:none}
+  .stat{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
+  .stat div{background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px;text-align:center}
+  .stat b{display:block;font-size:20px;color:var(--amber-d)}
+  .stat small{font-size:11px;color:var(--mut)}
+  .photo{height:88px;border-radius:10px;background:repeating-linear-gradient(45deg,#e7e9e6 0 10px,#f4f5f2 10px 20px);border:1px dashed #c3c9cf;display:flex;align-items:center;justify-content:center;color:#9aa2ab;font-size:12px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hz"></div>
+  <div class="top">
+    <h1>空间镜 · 工长施工端</h1>
+    <div class="sub">开放平台 M0 · 第一个接入空间孪生内核的第三方角色</div>
+    <div class="crew">
+      <div class="av">👷</div>
+      <div>
+        <b id="crew-name">王师傅</b>
+        <small id="crew-team">金牌施工队 · 好评 4.9 · 接单 128 次</small>
+      </div>
+      <span class="badge-m0">M0 已接入</span>
+    </div>
+  </div>
+
+  <main id="main"></main>
+
+  <div class="foot">
+    本页与业主端 / 商家端同源共用同一份订单内核，操作实时互通 ·
+    <a href="../merchant/index.html">看商家端</a> ·
+    <a href="../community/index.html">看案例回流</a> ·
+    <a href="#" id="reset-demo">重置演示数据</a>
+  </div>
+
+  <nav class="tabbar">
+    <button class="tab active" data-t="today"><span class="ti">📍</span>今日工地</button>
+    <button class="tab" data-t="orders"><span class="ti">🧾</span>施工工单<span class="tabn" id="n-orders" style="display:none">0</span></button>
+    <button class="tab" data-t="check"><span class="ti">🧰</span>材料验收</button>
+    <button class="tab" data-t="done"><span class="ti">✅</span>完工交付</button>
+  </nav>
+</div>
+<div class="toast" id="toast"></div>
+
+<script src="../assets/app-data.js"></script>
+<script>
+  var SM = window.SPACE_MIRROR, ROLE = 'crew';
+  var cur = 'today', pickId = null;
+
+  function toast(msg) {
+    var t = document.getElementById('toast');
+    t.textContent = msg; t.classList.add('on');
+    clearTimeout(t._tm); t._tm = setTimeout(function () { t.classList.remove('on'); }, 2200);
+  }
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]; }); }
+  function stageChip(st) {
+    var m = { lead: ['gray', '意向'], pending: ['gray', '待接单'], design: ['do', '方案中'],
+      assigned: ['do', '已派工'], onsite: ['hot', '施工中'], checking: ['hot', '待验收'],
+      rescan: ['blue', '业主复扫中'], done: ['ok', '已完成'] };
+    var x = m[st] || ['gray', st];
+    return '<span class="chip ' + x[0] + '">' + x[1] + '</span>';
+  }
+  // 权限提示：把「当前角色在这个状态下能干啥」直接写在卡片上
+  function permLine(o) {
+    var acts = SM.actionsFor(o, ROLE);
+    if (!acts.length) {
+      return '<div class="perm"><b>当前状态「' + SM.stageLabel(o.stage) + '」</b>：工长无可执行操作，等待' +
+        (o.stage === 'pending' ? '商家接单' : o.stage === 'design' ? '商家派工' : o.stage === 'rescan' ? '业主复扫' : '系统推进') + '</div>';
+    }
+    return '<div class="perm"><b>你（工长）此时可执行</b>：' +
+      acts.map(function (a) { return a.label; }).join(' · ') + '</div>';
+  }
+  function actBar(o) {
+    var acts = SM.actionsFor(o, ROLE), h = '';
+    acts.forEach(function (a) {
+      if (a.key === 'log') return;
+      h += '<button class="btn ' + (a.key === 'start' ? 'primary' : 'dark') + '" data-act="' + a.key + '" data-id="' + o.id + '">' + a.label + '</button>';
+    });
+    return h;
+  }
+  function orderCard(o, withAct) {
+    var p = SM.planById(o.planId);
+    var cls = o.stage === 'done' ? 's-ok' : (o.stage === 'onsite' || o.stage === 'checking') ? '' : 's-gray';
+    var cs = SM.checkStats(o);
+    return '<div class="card order ' + cls + '">' +
+      '<div class="o-top"><div><h3>' + esc(o.planName) + '</h3>' +
+      '<div class="o-meta">' + esc(o.homeName) + ' · ' + esc(o.customer.name) + ' ' + esc(o.customer.phone) + '</div></div>' +
+      '<div style="text-align:right">' + stageChip(o.stage) + '<div style="font-weight:900;font-size:17px;margin-top:4px">¥' + o.amount.toLocaleString() + '</div></div></div>' +
+      '<div class="o-meta" style="margin-top:6px">单号 ' + esc(o.no) + ' · 预约时间 ' + esc(o.requestedTime) + ' · 材料验收 ' + cs.done + '/' + cs.total + '</div>' +
+      (o.crew ? '<div class="o-meta">施工方：' + esc(o.crew.name) + '（' + esc(o.crew.team) + '）</div>' : '') +
+      permLine(o) +
+      (withAct ? '<div class="row" style="margin-top:10px;flex-direction:column;gap:8px">' + actBar(o) + '</div>' : '') +
+      '</div>';
+  }
+
+  function viewToday() {
+    SM.loadOrders(); SM.loadHomes();
+    var doing = SM.listOrders('doing').filter(function (o) { return o.stage === 'onsite' || o.stage === 'checking'; });
+    var h = '<div class="stat">' +
+      '<div><b>' + doing.length + '</b><small>在手工地</small></div>' +
+      '<div><b>' + SM.listOrders('doing').filter(function (o) { return o.stage === 'assigned'; }).length + '</b><small>待进场</small></div>' +
+      '<div><b>' + SM.listOrders('done').length + '</b><small>已交付</small></div>' +
+      '</div>';
+    h += '<div class="sec">今日排期</div><div class="card">';
+    var today = [
+      { t: '08:30', x: '阳光花园 3 栋 · 成品保护 + 放线进场' },
+      { t: '14:00', x: '江景壹号 A 座 · 主卧柜体吊装（需 2 人）' },
+      { t: '17:30', x: '回填施工日志 + 上传当日照片归档' }
+    ];
+    h += '<ul class="tl" style="margin:0;padding-left:14px">' + today.map(function (i) {
+      return '<li><div class="t">' + i.t + '</div>' + i.x + '</li>';
+    }).join('') + '</ul></div>';
+
+    h += '<div class="sec">在手工地</div>';
+    if (!doing.length) h += '<div class="card" style="text-align:center;color:var(--mut);font-size:13px">当前没有在手工地，去「施工工单」接活</div>';
+    doing.forEach(function (o) {
+      h += orderCard(o, false);
+      h += '<div class="card" style="padding:10px"><div class="row">' +
+        '<button class="btn ghost sm" data-act="log" data-id="' + o.id + '">📷 施工打卡</button>' +
+        '<button class="btn ghost sm" data-act="log" data-id="' + o.id + '" data-kind="check">🧾 上传进度</button>' +
+        '</div><div class="photo" style="margin-top:8px">现场照片占位（Demo 不接真实相机）</div></div>';
+    });
+    return h;
+  }
+
+  function viewOrders() {
+    SM.loadOrders();
+    var mine = SM.listOrders('all').filter(function (o) {
+      return ['assigned', 'onsite', 'checking', 'rescan', 'done'].indexOf(o.stage) >= 0;
+    });
+    var h = '<div class="stat">' +
+      '<div><b>' + mine.filter(function (o) { return o.stage === 'assigned'; }).length + '</b><small>待进场</small></div>' +
+      '<div><b>' + mine.filter(function (o) { return o.stage === 'onsite'; }).length + '</b><small>施工中</small></div>' +
+      '<div><b>' + mine.filter(function (o) { return o.stage === 'checking'; }).length + '</b><small>待验收</small></div>' +
+      '</div><div class="sec">我的工单</div>';
+    if (!mine.length) h += '<div class="card" style="text-align:center;color:var(--mut);font-size:13px">还没有派给你的工单</div>';
+    mine.forEach(function (o) { h += orderCard(o, true); });
+    return h;
+  }
+
+  function viewCheck() {
+    SM.loadOrders();
+    var list = SM.listOrders('all').filter(function (o) { return ['onsite', 'checking', 'assigned'].indexOf(o.stage) >= 0; });
+    var h = '<div class="sec">材料验收（对照 C 端购物清单逐项核）</div>';
+    if (!list.length) return h + '<div class="card" style="text-align:center;color:var(--mut);font-size:13px">没有需要验收的工地</div>';
+    if (!pickId || !list.some(function (o) { return o.id === pickId; })) pickId = list[0].id;
+    // 订单切换
+    h += '<div class="row" style="flex-wrap:wrap;margin-bottom:10px">' + list.map(function (o) {
+      return '<button class="btn ghost sm" data-pick="' + o.id + '" style="' + (o.id === pickId ? 'border-color:var(--amber);background:#fff6ee;color:var(--amber-d)' : '') + '">' + esc(o.no) + ' ' + esc(o.planName) + '</button>';
+    }).join('') + '</div>';
+    var o = SM.getOrder(pickId), p = SM.planById(o.planId), cs = SM.checkStats(o);
+    h += '<div class="card"><div class="o-top"><div><h3>' + esc(o.planName) + '</h3><div class="o-meta">' + esc(o.homeName) + ' · ' + esc(o.no) + '</div></div>' +
+      '<div style="text-align:right"><b style="font-size:22px;color:var(--amber-d)">' + cs.done + '/' + cs.total + '</b></div></div>' +
+      '<div class="o-meta">清单来自业主在 C 端「加入购物清单」的商品，商家配送到现场后由你逐项核对</div></div>';
+    (p ? p.products : []).forEach(function (pr) {
+      var on = !!(o.checks && o.checks[pr.pid]);
+      h += '<div class="chk ' + (on ? 'on' : '') + '" data-chk="' + pr.pid + '">' +
+        '<div class="box">' + (on ? '✓' : '') + '</div>' +
+        '<div style="flex:1"><div class="nm">' + esc(pr.name) + (pr.required ? ' <span class="chip hot">必买</span>' : ' <span class="chip gray">可选</span>') + '</div>' +
+        '<div class="sp">' + esc(pr.spec) + ' ×' + pr.qty + ' · ' + esc(pr.merchant) + ' · ¥' + pr.price + '</div></div></div>';
+    });
+    h += '<div class="row" style="margin-top:10px">' +
+      '<button class="btn ' + (SM.allChecked(o) ? 'primary' : 'ghost') + '" data-act="check" data-id="' + o.id + '">提交验收</button>' +
+      '</div>';
+    if (!SM.allChecked(o)) h += '<div class="o-meta" style="text-align:center;margin-top:6px">还有 ' + (cs.total - cs.done) + ' 项未核对</div>';
+    return h;
+  }
+
+  function viewDone() {
+    SM.loadOrders();
+    var waiting = SM.listOrders('all').filter(function (o) { return o.stage === 'rescan'; });
+    var done = SM.listOrders('done');
+    var h = '<div class="sec">等待业主复扫</div>';
+    if (!waiting.length) h += '<div class="card" style="text-align:center;color:var(--mut);font-size:13px">没有等待复扫的工地</div>';
+    waiting.forEach(function (o) {
+      h += orderCard(o, false);
+      h += '<div class="card" style="padding:12px;background:#f3f7ff;border-color:#cfe0ff">' +
+        '<div style="font-size:13px;font-weight:700;color:#1e40af">已通知业主复扫</div>' +
+        '<div class="o-meta">业主扫码复扫后，家资产会自动落一个新版本（v+1），四维分刷新，并自动发一条改造案例。</div>' +
+        '<button class="btn dark" style="margin-top:10px" data-act="doRescan" data-id="' + o.id + '">演示：代替业主完成复扫</button>' +
+        '</div>';
+    });
+    h += '<div class="sec">已交付</div>';
+    if (!done.length) h += '<div class="card" style="text-align:center;color:var(--mut);font-size:13px">暂无交付记录</div>';
+    done.forEach(function (o) {
+      var p = SM.planById(o.planId);
+      h += '<div class="card order s-ok"><div class="o-top"><div><h3>' + esc(o.planName) + '</h3>' +
+        '<div class="o-meta">' + esc(o.homeName) + ' · ' + esc(o.no) + '</div></div>' +
+        '<div style="text-align:right">' + stageChip('done') + '<div style="font-weight:900;font-size:17px;margin-top:4px">¥' + o.amount.toLocaleString() + '</div></div></div>' +
+        (o.rescan ? '<div class="chip ok" style="margin-top:6px">已落 v' + o.rescan.version + ' 快照 · 四维分 ' + p.beforeScore + ' → ' + p.afterScore + '</div>' : '') +
+        '<div class="row" style="margin-top:10px"><a class="btn ghost sm" href="../compare/index.html?home=' + o.homeId + '">看前后对比</a>' +
+        '<a class="btn ghost sm" href="../community/index.html">看回流案例</a></div></div>';
+    });
+    return h;
+  }
+
+  function render() {
+    document.getElementById('main').innerHTML =
+      cur === 'today' ? viewToday() : cur === 'orders' ? viewOrders() : cur === 'check' ? viewCheck() : viewDone();
+    document.querySelectorAll('.tab').forEach(function (b) { b.classList.toggle('active', b.dataset.t === cur); });
+    var n = SM.listOrders('all').filter(function (o) { return o.stage === 'assigned'; }).length;
+    var el = document.getElementById('n-orders');
+    el.style.display = n ? 'inline-block' : 'none'; el.textContent = n;
+  }
+
+  document.addEventListener('click', function (e) {
+    var t = e.target.closest('[data-t]');
+    if (t) { cur = t.dataset.t; render(); return; }
+    var pk = e.target.closest('[data-pick]');
+    if (pk) { pickId = pk.dataset.pick; render(); return; }
+    var ck = e.target.closest('[data-chk]');
+    if (ck) {
+      SM.toggleCheck(pickId, ck.dataset.chk);
+      var o = SM.getOrder(pickId);
+      if (SM.allChecked(o) && o.stage === 'onsite') toast('材料已全部核对，可以提交验收了');
+      render(); return;
+    }
+    var bt = e.target.closest('[data-act]');
+    if (bt) {
+      var key = bt.dataset.act, id = bt.dataset.id;
+      var opts = { role: key === 'doRescan' ? 'owner' : ROLE };
+      if (key === 'log') opts.text = bt.dataset.kind === 'check' ? '上传施工进度与现场照片' : '上传现场照片 · 已定位到 ' + (SM.getOrder(id) || {}).homeName;
+      if (key === 'doRescan') opts.role = 'owner';
+      var r = SM.doAct(id, key, opts);
+      if (!r.ok) { toast('⛔ ' + r.reason); return; }
+      var map = { start: '已进场开工，状态推进到「施工中」', check: '验收已提交，等待业主确认', askRescan: '已通知业主复扫', doRescan: '复扫完成 · 家资产已落新版本并自动生成案例', log: '现场记录已归档并同步给业主与商家' };
+      toast('✅ ' + (map[key] || '已更新'));
+      pickId = null; render(); return;
+    }
+  });
+
+  document.getElementById('reset-demo').onclick = function (e) {
+    e.preventDefault();
+    SM.resetOrders();
+    try { localStorage.removeItem('spacemirror_homes_v1'); } catch (err) { }
+    location.reload();
+  };
+
+  SM.loadOrders(); SM.loadHomes();
+  render();
+  SM.renderBadges();
+</script>
+</body>
+</html>

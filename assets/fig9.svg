@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="820" height="470" viewBox="0 0 820 470">
+  <defs>
+    <style>
+      text { font-family: 'Noto Sans CJK SC','Source Han Sans SC','WenQuanYi Micro Hei','Microsoft YaHei',sans-serif; }
+      .title { font-size: 20px; font-weight: 700; fill: #0f172a; }
+      .sub { font-size: 13px; fill: #64748b; }
+      .phase-label { font-size: 12px; font-weight: 700; fill: #64748b; letter-spacing: 1px; }
+      .phase-title { font-size: 16px; font-weight: 700; fill: #0f172a; }
+      .m { font-size: 13px; font-weight: 700; fill: #0f172a; }
+      .m-desc { font-size: 11.5px; fill: #64748b; }
+      .goal { font-size: 11.5px; fill: #92400e; }
+      .note { font-size: 11px; fill: #94a3b8; }
+    </style>
+  </defs>
+  <rect width="820" height="470" fill="#ffffff" rx="12"/>
+
+  <text x="32" y="38" class="title">36 个月里程碑：先验证价值，再放大商业</text>
+  <text x="32" y="62" class="sub">三阶段推进 · 前 6 个月只验证一件事：用户愿意扫描、采纳方案并付费</text>
+
+  <!-- 时间轴 -->
+  <line x1="40" y1="92" x2="780" y2="92" stroke="#e2e8f0" stroke-width="3"/>
+  <circle cx="40"  cy="92" r="7" fill="#2563eb"/>
+  <circle cx="410" cy="92" r="7" fill="#d97706"/>
+  <circle cx="780" cy="92" r="7" fill="#0d9488"/>
+
+  <!-- 阶段一 -->
+  <rect x="32" y="112" width="236" height="240" fill="#f8fafc" stroke="#e2e8f0" rx="10"/>
+  <rect x="32" y="112" width="236" height="4" fill="#2563eb" rx="2"/>
+  <text x="52" y="142" class="phase-label">第 1–6 个月</text>
+  <text x="52" y="166" class="phase-title">验证期 · MVP</text>
+  <text x="52" y="196" class="m">M1 空间扫描与数字孪生</text>
+  <text x="52" y="216" class="m-desc">LiDAR 3 分钟生成可编辑 3D 户型，</text>
+  <text x="52" y="232" class="m-desc">单目方案覆盖非 LiDAR 机型</text>
+  <text x="52" y="260" class="m">M2 AI 空间分析</text>
+  <text x="52" y="280" class="m-desc">动线 / 采光 / 收纳 / 噪音四维诊断，</text>
+  <text x="52" y="296" class="m-desc">生成效果图 + 购物清单改造方案</text>
+  <text x="52" y="328" class="goal">目标：跑通「扫描 → 方案 → 付费」闭环</text>
+
+  <!-- 阶段二 -->
+  <rect x="292" y="112" width="236" height="240" fill="#f8fafc" stroke="#e2e8f0" rx="10"/>
+  <rect x="292" y="112" width="236" height="4" fill="#d97706" rx="2"/>
+  <text x="312" y="142" class="phase-label">第 7–18 个月</text>
+  <text x="312" y="166" class="phase-title">增长期 · 商业化启动</text>
+  <text x="312" y="196" class="m">M3 AR 信息叠加</text>
+  <text x="312" y="216" class="m-desc">空间定位叠加日程 / 菜谱 / 穿搭，</text>
+  <text x="312" y="232" class="m-desc">让「空间」成为信息入口</text>
+  <text x="312" y="260" class="m">M4 智能家居联动</text>
+  <text x="312" y="280" class="m-desc">Matter / 米家 / 鸿蒙生态，</text>
+  <text x="312" y="296" class="m-desc">人进房间自动调节的无感智能</text>
+  <text x="312" y="328" class="goal">目标：订阅 + 佣金双引擎启动</text>
+
+  <!-- 阶段三 -->
+  <rect x="552" y="112" width="236" height="240" fill="#f8fafc" stroke="#e2e8f0" rx="10"/>
+  <rect x="552" y="112" width="236" height="4" fill="#0d9488" rx="2"/>
+  <text x="572" y="142" class="phase-label">第 19–36 个月</text>
+  <text x="572" y="166" class="phase-title">放大期 · 生态规模化</text>
+  <text x="572" y="196" class="m">M5 出行实景孪生</text>
+  <text x="572" y="216" class="m-desc">与连锁家居 / 零售品牌共建门店孪生，</text>
+  <text x="572" y="232" class="m-desc">逛街路上预览店内实况</text>
+  <text x="572" y="260" class="m">M6 数字空间资产</text>
+  <text x="572" y="280" class="m-desc">空间数据云端版本化管理，导出</text>
+  <text x="572" y="296" class="m-desc">glb/obj，多端实时同步</text>
+  <text x="572" y="328" class="goal">目标：商家体系与开放平台规模化</text>
+
+  <text x="32" y="392" class="note">注：以 6 个月 MVP 为第一决策节点，用真实数据检验「付费转化率、方案采纳率、大厂竞争窗口」后再进入规模化投入；里程碑为规划假设。</text>
+</svg>

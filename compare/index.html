@@ -28,8 +28,9 @@
         </div>
       </div>
 
-      <div class="card">
+        <div class="card">
         <div style="font-weight:800;margin-bottom:10px">四维分数前后对比</div>
+        <div class="r-sub" id="cmp-src" style="margin-bottom:8px">—</div>
         <div class="dimbars" id="dimbars"></div>
         <div class="r-sub" style="margin-top:8px">改造后重新扫描，分数自动回流，模型越用越准（增长飞轮：数据回流 → 诊断更精准）。</div>
       </div>
@@ -71,14 +72,21 @@
     if (home) { $('cmp-home').textContent = home.name; $('sc-home').textContent = home.name; }
 
     function render() {
-      var R = SM.RESCAN;
+      SM.loadOrders(); SM.loadHomes();
+      // 前后对比 = 同一套房的两个版本快照（v1 建档 vs 最新），不再读写死的常量
+      var R = SM.rescanForHome(homeId);
+      var vs = SM.getVersions(homeId);
+      var v0 = vs[0], vLast = vs[vs.length - 1];
       var b = SM.rescanComposite(R.before), a = SM.rescanComposite(R.after);
       $('before-score').textContent = b;
       $('after-score').textContent = a;
-      $('delta').textContent = '+' + (a - b);
-      $('sc-badge').textContent = '+' + (a - b);
-      $('sc-date').textContent = '改造前 ' + R.dateBefore + ' · 改造后 ' + R.dateAfter;
+      $('delta').textContent = (a >= b ? '+' : '') + (a - b);
+      $('sc-badge').textContent = (a >= b ? '+' : '') + (a - b);
+      $('sc-date').textContent = (v0 ? v0.label.split(' · ')[0] + ' ' + v0.date : R.dateBefore) +
+        ' → ' + (vLast ? vLast.label.split(' · ')[0] + ' ' + vLast.date : R.dateAfter);
       $('cmp-sub').textContent = R.dateBefore + ' → ' + R.dateAfter;
+      $('cmp-src').innerHTML = '<b>数据来源</b>：' + R.sourceLabel +
+        (vLast && vLast.source === 'order' ? ' · 复扫后已自动落到新版本快照，族谱可追溯' : '');
 
       $('dimbars').innerHTML = R.before.map(function (dim, i) {
         var af = R.after[i];
@@ -92,14 +100,29 @@
       $('sc-dims').textContent = changed;
     }
 
+    function syncRescanBtn() {
+      SM.loadOrders();
+      var waiting = SM.listOrders('all').filter(function (o) { return o.homeId === homeId && o.stage === 'rescan'; });
+      var btn = $('rescan-btn');
+      if (!waiting.length) { btn.textContent = '重新扫描本套房'; btn._id = null; return; }
+      var o = waiting[0];
+      btn.textContent = '完成「' + o.planName + '」复扫';
+      btn._id = o.id;
+    }
     $('rescan-btn').addEventListener('click', function () {
-      toast('正在重新扫描…（演示：分数已为改造后实测）');
+      if (!this._id) { toast('正在重新扫描…（当前没有等待复扫的工单）'); return; }
+      var r = SM.doAct(this._id, 'doRescan', { role: 'owner' });
+      if (!r.ok) { toast('⛔ ' + r.reason); return; }
+      toast('✅ 复扫完成 · 家资产已落 v' + r.order.rescan.version + ' 快照，案例已回流社区');
+      SM.loadHomes(); syncRescanBtn(); render();
     });
     $('share-btn').addEventListener('click', function () {
       toast('改造成果卡已复制到剪贴板，可分享');
     });
 
+    SM.loadOrders(); SM.loadHomes();
     SM.renderBadges();
+    syncRescanBtn();
     render();
   </script>
 </body>

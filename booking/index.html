@@ -32,10 +32,23 @@
       </div>
 
       <div class="card">
+        <div style="font-weight:800;margin-bottom:4px">改造对象</div>
+        <div class="r-sub" style="margin-bottom:10px">选一套已建档的家资产，并确认以哪个空间版本作为改造前的基准。顾问接到的是同一个孪生对象，不会认错房。</div>
+        <select class="field-input" id="f-home" style="margin-bottom:10px"></select>
+        <select class="field-input" id="f-version" style="margin-bottom:14px"></select>
+
         <div style="font-weight:800;margin-bottom:12px">联系方式</div>
-        <div class="field-input" id="f-name" placeholder="姓名" style="margin-bottom:10px"></div>
-        <div class="field-input" id="f-phone" type="tel" inputmode="numeric" maxlength="11" placeholder="手机号" style="margin-bottom:10px"></div>
-        <div class="field-input" id="f-estate" placeholder="小区 / 楼盘" style="margin-bottom:10px"></div>
+        <input class="field-input" id="f-name" placeholder="姓名" style="margin-bottom:10px">
+        <input class="field-input" id="f-phone" type="tel" inputmode="numeric" maxlength="11" placeholder="手机号" style="margin-bottom:10px">
+        <input class="field-input" id="f-estate" placeholder="小区 / 楼盘" style="margin-bottom:10px">
+        <select class="field-input" id="f-time" style="margin-bottom:10px">
+          <option value="">期望上门时间</option>
+          <option>工作日白天</option>
+          <option>工作日晚上</option>
+          <option>周末上午</option>
+          <option>周末下午</option>
+          <option>越快越好</option>
+        </select>
         <select class="field-input" id="f-budget" style="margin-bottom:10px">
           <option value="">预算区间</option>
           <option>1 万以内</option>
@@ -45,12 +58,18 @@
         </select>
         <textarea class="field-input" id="f-note" rows="3" placeholder="补充需求（选填）：如想重点解决收纳 / 采光…"></textarea>
         <button class="btn primary block" id="submit-btn" style="margin-top:14px">提交预约</button>
-        <div class="r-sub" style="text-align:center;margin-top:8px">演示：提交后本地保存，不会真实发送</div>
+        <div class="r-sub" style="text-align:center;margin-top:8px">演示：提交后生成真实意向单，商家端与工长端立刻可见</div>
       </div>
 
       <div id="done" class="card" style="display:none;margin-top:14px;border:1px solid var(--green);background:#ecfdf5">
-        <div style="font-weight:800;color:var(--green)">✅ 预约已提交</div>
+        <div style="font-weight:800;color:var(--green)">✅ 意向已登记，已为你匹配服务商</div>
         <div class="r-sub" id="done-sub" style="margin-top:6px"></div>
+        <div id="match-list" style="margin-top:10px"></div>
+        <div class="r-sub" style="margin-top:10px">接下来：商家接单 → 上传方案并派工 → 工长进场施工 → 材料验收 → 你完成后扫，家资产自动落新版本。</div>
+        <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
+          <a class="btn ghost" href="../merchant/index.html" style="flex:1;text-align:center">看商家接单端</a>
+          <a class="btn ghost" href="../site/index.html" style="flex:1;text-align:center">看工长施工端</a>
+        </div>
       </div>
     </div>
 
@@ -79,21 +98,67 @@
       $('cart-sub').textContent = '合计 ¥' + total.toLocaleString() + (disc ? ' · 套餐优惠后 ¥' + (total - disc).toLocaleString() : '') + ' · 顾问将一并比价';
     }
 
+    // 改造对象：家资产 + 空间版本（作为改造前基准）
+    SM.loadHomes();
+    var versionOf = {};
+    function fillHomes() {
+      var hs = SM.HOMES;
+      $('f-home').innerHTML = hs.map(function (h) {
+        var vs = SM.getVersions(h.id);
+        var last = vs[vs.length - 1];
+        return '<option value="' + h.id + '">' + h.name + ' · 当前 ' + last.label.split(' · ')[0] + '（综合 ' + SM.versionComposite(last) + ' 分）</option>';
+      }).join('');
+      fillVersions();
+    }
+    function fillVersions() {
+      var hid = $('f-home').value;
+      var vs = SM.getVersions(hid);
+      $('f-version').innerHTML = vs.map(function (v) {
+        return '<option value="' + v.v + '">基准版本：' + v.label + ' · ' + v.date + ' · 综合 ' + SM.versionComposite(v) + ' 分</option>';
+      }).join('');
+      $('f-version').value = String(vs[vs.length - 1].v);
+    }
+    $('f-home').addEventListener('change', fillVersions);
+    fillHomes();
+
     $('submit-btn').addEventListener('click', function () {
       var name = $('f-name').value.trim();
       var phone = $('f-phone').value.trim();
       var estate = $('f-estate').value.trim();
       var budget = $('f-budget').value;
+      var time = $('f-time').value;
       if (!name) { toast('请填写姓名'); return; }
       if (!/^\d{11}$/.test(phone)) { toast('请填写 11 位手机号'); return; }
       if (!estate) { toast('请填写小区 / 楼盘'); return; }
+      if (!time) { toast('请选择期望上门时间'); return; }
       if (!budget) { toast('请选择预算区间'); return; }
-      var rec = { name: name, phone: phone, estate: estate, budget: budget, note: $('f-note').value.trim(), cartTotal: total, at: new Date().toISOString() };
-      try { localStorage.setItem('spacemirror_booking_v1', JSON.stringify(rec)); } catch (e) {}
-      $('done-sub').textContent = name + ' · ' + phone + ' · ' + estate + ' · ' + budget + (total > 0 ? ' · 含清单 ¥' + total.toLocaleString() : '');
+
+      var hid = $('f-home').value, ver = $('f-version').value;
+      var home = SM.getHome(hid);
+      var cart = SM.getCart();
+      var planName = cart.length ? cart[0].group : '全屋综合改造';
+      var planId = cart.length ? cart[0].planId : '';
+
+      var lead = SM.createLeadFromBooking({
+        homeId: hid, homeName: home ? home.name : '', version: ver,
+        planId: planId, planName: planName, amount: total,
+        name: name, phone: phone, community: estate, budget: budget,
+        time: time, need: $('f-note').value.trim()
+      });
+      SM.pushLeadToPool(lead.id);
+      var pushed = SM.getOrder(lead.id);
+
+      $('done-sub').textContent = name + ' · ' + phone + ' · ' + estate + ' · ' + budget +
+        ' · ' + time + ' · 意向单号 ' + pushed.no +
+        (cart.length ? ' · 含购物清单 ¥' + total.toLocaleString() : '');
+      $('match-list').innerHTML = (pushed.matched || []).map(function (m) {
+        return '<div style="display:flex;justify-content:space-between;gap:8px;padding:9px 0;border-top:1px solid #cdeedc">' +
+          '<div><b>' + m.name + '</b><div class="r-sub">' + m.tag + ' · ' + m.dist + '</div></div>' +
+          '<div class="r-sub" style="color:var(--green);white-space:nowrap">' + m.eta + '</div></div>';
+      }).join('');
       $('done').style.display = '';
       this.disabled = true; this.textContent = '已提交';
-      toast('预约提交成功，顾问会尽快联系你');
+      toast('✅ 已生成意向单并推送服务商');
     });
 
     SM.renderBadges();
